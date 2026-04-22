@@ -3,637 +3,775 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VoltLog — E-Bike Battery Manager</title>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <title>Taigu Battery Tool</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #07090f;
-      --surface: #0d1220;
-      --surface-2: #131b2e;
-      --surface-3: #1a2438;
-      --border: #1e2d42;
-      --border-2: #2a3f5a;
-      --accent: #00c9ff;
-      --accent-dim: rgba(0,201,255,0.1);
-      --accent-glow: rgba(0,201,255,0.3);
-      --green: #00ff88;
-      --green-dim: rgba(0,255,136,0.1);
-      --orange: #ff8c00;
-      --orange-dim: rgba(255,140,0,0.1);
-      --danger: #ff3d5a;
-      --danger-dim: rgba(255,61,90,0.1);
-      --text: #d0dff0;
-      --text-2: #6a85a5;
-      --text-3: #3a526a;
-      --radius: 8px;
-      --radius-lg: 12px;
+      --cream:     #f7f4ee;
+      --white:     #ffffff;
+      --ink:       #0f0e0b;
+      --ink-2:     #4a4740;
+      --ink-3:     #9a9590;
+      --ink-4:     #c8c4be;
+      --gold:      #a8752e;
+      --gold-mid:  #c49040;
+      --gold-pale: #f5ead6;
+      --gold-line: rgba(168,117,46,0.2);
+      --border:    #e6e1d8;
+      --border-2:  #d4cec5;
+      --surface:   #ffffff;
+      --surface-2: #faf8f4;
+      --red:       #c0392b;
+      --red-pale:  #fdf1f0;
+      --green:     #2e7d52;
+      --green-pale:#eef6f1;
+      --shadow-sm: 0 1px 3px rgba(15,14,11,0.06), 0 1px 2px rgba(15,14,11,0.04);
+      --shadow-md: 0 4px 12px rgba(15,14,11,0.08), 0 2px 4px rgba(15,14,11,0.04);
+      --shadow-lg: 0 16px 48px rgba(15,14,11,0.12), 0 4px 12px rgba(15,14,11,0.06);
+      --r:         6px;
+      --r-lg:      12px;
+      --r-xl:      18px;
     }
 
-    html { font-size: 16px; }
-
+    html { font-size: 15px; -webkit-font-smoothing: antialiased; }
     body {
-      font-family: 'Barlow', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--cream);
+      color: var(--ink);
       min-height: 100vh;
-      overflow-x: hidden;
     }
 
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--surface); }
-    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
 
-    h1, h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.02em; }
-    .mono { font-family: 'JetBrains Mono', monospace; }
+    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .mono  { font-family: 'JetBrains Mono', monospace; }
+    .gold  { color: var(--gold); }
 
-    /* ==============================
-       LOGIN
-    ============================== */
-    #login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(0,201,255,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(0,255,136,0.04) 0%, transparent 50%),
-        var(--bg);
-      position: relative;
-    }
+    /* ─────────────────────────────────────────
+       TYPOGRAPHY
+    ───────────────────────────────────────── */
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: 0.03em; }
+    h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+    h3 { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.87rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
 
-    #login-screen::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(30,45,66,0.35) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(30,45,66,0.35) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-    }
-
-    .login-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 48px 40px;
-      width: 100%;
-      max-width: 400px;
-      position: relative;
-      z-index: 1;
-      box-shadow: 0 0 60px rgba(0,201,255,0.05), 0 24px 60px rgba(0,0,0,0.5);
-      animation: fadeUp 0.4s ease both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .login-logo { text-align: center; margin-bottom: 36px; }
-    .login-logo .bolt { font-size: 52px; line-height: 1; filter: drop-shadow(0 0 14px var(--accent)); }
-    .login-logo h1 { font-size: 38px; color: var(--text); margin-top: 8px; }
-    .login-logo h1 span { color: var(--accent); }
-    .login-logo p {
-      color: var(--text-2);
-      font-size: 12px;
-      font-weight: 400;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    /* ==============================
+    /* ─────────────────────────────────────────
        FORMS
-    ============================== */
-    .form-group { margin-bottom: 16px; }
-    .form-group label {
-      display: block;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-2);
-      margin-bottom: 8px;
+    ───────────────────────────────────────── */
+    .field { margin-bottom: 18px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block; font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--ink-3); margin-bottom: 7px;
     }
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      width: 100%;
-      background: var(--surface-2);
+    .field input, .field select, .field textarea {
+      width: 100%; background: var(--white);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-family: 'Barlow', sans-serif;
-      font-size: 15px;
-      padding: 11px 14px;
-      outline: none;
+      border-radius: var(--r); color: var(--ink);
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      padding: 10px 14px; outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
       appearance: none;
     }
-    .form-group select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236a85a5' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 36px;
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%239a9590' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 13px center;
+      padding-right: 34px;
     }
-    .form-group select option { background: #131b2e; }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-dim);
+    .field select option { background: #fff; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(168,117,46,0.1);
     }
-    .form-group input::placeholder,
-    .form-group textarea::placeholder { color: var(--text-3); }
-    .form-group textarea { resize: vertical; }
-    .form-group.mono-input input { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+    .field input::placeholder, .field textarea::placeholder { color: var(--ink-4); }
+    .field textarea { resize: vertical; }
+    .field.mono input { font-family: 'JetBrains Mono', monospace; font-size: 0.87rem; }
+    .field .hint { font-size: 0.75rem; color: var(--ink-3); margin-top: 5px; }
 
-    .input-row { display: flex; gap: 8px; }
-    .input-row .form-group { flex: 1; margin-bottom: 0; }
+    .row { display: flex; gap: 10px; }
+    .row .field { flex: 1; margin-bottom: 0; }
 
-    /* ==============================
+    /* ─────────────────────────────────────────
        BUTTONS
-    ============================== */
+    ───────────────────────────────────────── */
     .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      font-family: 'Barlow Condensed', sans-serif;
-      font-weight: 700; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase;
-      padding: 11px 22px; border-radius: var(--radius); border: none;
-      cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+      display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+      font-family: 'DM Sans', sans-serif; font-weight: 500;
+      font-size: 0.87rem; letter-spacing: 0.03em;
+      padding: 10px 20px; border-radius: var(--r);
+      border: none; cursor: pointer;
+      transition: all 0.2s; white-space: nowrap;
     }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-primary { background: var(--accent); color: #07090f; }
-    .btn-primary:hover:not(:disabled) { background: #33d4ff; box-shadow: 0 0 24px var(--accent-glow); }
-    .btn-secondary { background: transparent; color: var(--text-2); border: 1px solid var(--border-2); }
-    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-    .btn-success { background: var(--green); color: #07090f; }
-    .btn-success:hover:not(:disabled) { background: #33ffaa; box-shadow: 0 0 20px rgba(0,255,136,0.3); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed !important; }
+    .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .btn-gold {
+      background: var(--gold); color: #fff;
+      box-shadow: 0 1px 3px rgba(168,117,46,0.25);
+    }
+    .btn-gold:hover:not(:disabled) {
+      background: #96661e; box-shadow: 0 4px 12px rgba(168,117,46,0.35);
+    }
+    .btn-outline {
+      background: transparent; color: var(--ink-2);
+      border: 1px solid var(--border-2);
+    }
+    .btn-outline:hover:not(:disabled) {
+      border-color: var(--gold); color: var(--gold); background: var(--gold-pale);
+    }
+    .btn-ghost {
+      background: transparent; color: var(--ink-3); padding: 10px 12px;
+    }
+    .btn-ghost:hover:not(:disabled) { color: var(--gold); background: var(--gold-pale); }
+    .btn-danger {
+      background: transparent; color: var(--red);
+      border: 1px solid rgba(192,57,43,0.2);
+      font-size: 0.8rem; padding: 6px 12px;
+    }
+    .btn-danger:hover:not(:disabled) { background: var(--red-pale); border-color: var(--red); }
     .btn-full { width: 100%; }
-    .btn-sm { padding: 8px 14px; font-size: 13px; }
-    .btn-icon { padding: 11px 13px; font-size: 18px; }
+    .btn-sm { padding: 7px 14px; font-size: 0.82rem; }
 
-    /* ==============================
-       MESSAGES
-    ============================== */
+    /* ─────────────────────────────────────────
+       FEEDBACK MESSAGES
+    ───────────────────────────────────────── */
     .msg {
-      padding: 11px 14px; border-radius: var(--radius);
-      font-size: 13px; margin-top: 12px; display: none; line-height: 1.4;
+      padding: 10px 14px; border-radius: var(--r);
+      font-size: 0.85rem; line-height: 1.5;
+      display: none; margin-top: 14px;
     }
-    .msg.show { display: block; }
-    .msg.error   { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,61,90,0.2); }
-    .msg.success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
-    .msg.info    { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,201,255,0.2); }
+    .msg.show   { display: block; animation: fadeIn 0.2s ease; }
+    .msg.error  { background: var(--red-pale); color: var(--red); border-left: 3px solid var(--red); }
+    .msg.ok     { background: var(--green-pale); color: var(--green); border-left: 3px solid var(--green); }
+    .msg.info   { background: var(--gold-pale); color: var(--gold); border-left: 3px solid var(--gold); }
 
-    /* ==============================
+    /* ─────────────────────────────────────────
+       SPINNER
+    ───────────────────────────────────────── */
+    .spin {
+      display: inline-block; width: 14px; height: 14px; vertical-align: middle;
+      border: 2px solid currentColor; border-right-color: transparent;
+      border-radius: 50%; animation: rotate 0.65s linear infinite;
+    }
+    @keyframes rotate { to { transform: rotate(360deg); } }
+    @keyframes fadeIn  { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+    /* ─────────────────────────────────────────
        MODAL / OVERLAY
-    ============================== */
+    ───────────────────────────────────────── */
     .overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; backdrop-filter: blur(4px);
+      position: fixed; inset: 0; z-index: 999;
+      background: rgba(15,14,11,0.6); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
     }
     .overlay.hidden { display: none; }
     .modal {
-      background: var(--surface); border: 1px solid var(--border-2);
-      border-radius: var(--radius-lg); padding: 36px;
-      width: 100%; max-width: 520px; box-shadow: 0 24px 60px rgba(0,0,0,0.6);
-      animation: fadeUp 0.3s ease both;
+      background: var(--white); border-radius: var(--r-xl);
+      box-shadow: var(--shadow-lg); padding: 40px;
+      width: 100%; max-width: 480px;
+      animation: slideUp 0.3s cubic-bezier(.16,1,.3,1);
     }
-    .modal h2 { font-size: 22px; margin-bottom: 8px; }
-    .modal p { color: var(--text-2); font-size: 14px; margin-bottom: 20px; line-height: 1.7; }
-    .modal code {
-      background: var(--surface-3); color: var(--accent);
-      font-family: 'JetBrains Mono', monospace; font-size: 12px;
-      padding: 2px 7px; border-radius: 4px;
+    .modal-header { margin-bottom: 24px; }
+    .modal-header h2 { font-size: 1.7rem; font-weight: 400; }
+    .modal-header p { color: var(--ink-3); font-size: 0.9rem; margin-top: 6px; line-height: 1.6; }
+    .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 28px; }
+
+    /* ─────────────────────────────────────────
+       LOGIN
+    ───────────────────────────────────────── */
+    #login-page {
+      min-height: 100vh; display: flex;
+      background: linear-gradient(145deg, #0f0e0b 0%, #1e1c16 50%, #0f0e0b 100%);
+      position: relative; overflow: hidden;
     }
+    #login-page::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(168,117,46,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(168,117,46,0.06) 0%, transparent 60%);
+    }
+    .login-left {
+      flex: 1; display: flex; flex-direction: column;
+      justify-content: center; padding: 60px 80px;
+      position: relative; z-index: 1;
+    }
+    .login-brand { margin-bottom: 60px; }
+    .login-brand .logo-wrap {
+      width: 56px; height: 56px; margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-brand .logo-wrap img { width: 56px; height: 56px; object-fit: contain; }
+    .login-brand .logo-fallback {
+      width: 56px; height: 56px; background: var(--gold);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-weight: 300;
+    }
+    .login-brand h1 {
+      font-size: 2.8rem; color: #f2ede4; letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .login-brand p { color: rgba(242,237,228,0.45); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px; }
+    .login-tagline {
+      font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 300;
+      color: rgba(242,237,228,0.7); line-height: 1.3; max-width: 360px;
+    }
+    .login-tagline em { color: var(--gold-mid); font-style: italic; }
 
-    /* ==============================
-       APP LAYOUT
-    ============================== */
-    #app-screen { min-height: 100vh; display: flex; flex-direction: column; }
-    #app-screen.hidden { display: none; }
+    .login-right {
+      width: 480px; background: var(--cream); display: flex;
+      flex-direction: column; justify-content: center; padding: 60px 56px;
+      position: relative; z-index: 1;
+    }
+    .login-right::before {
+      content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
+      width: 1px; background: linear-gradient(to bottom, transparent, var(--gold-line), transparent);
+    }
+    .login-right h2 { font-size: 1.9rem; font-weight: 400; margin-bottom: 6px; }
+    .login-right .sub { color: var(--ink-3); font-size: 0.88rem; margin-bottom: 34px; }
+    .login-divider {
+      height: 1px; background: var(--border); margin: 24px 0;
+    }
+    .login-note { font-size: 0.78rem; color: var(--ink-4); text-align: center; }
 
-    .app-header {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 0 24px; height: 60px;
+    /* ─────────────────────────────────────────
+       APP SHELL
+    ───────────────────────────────────────── */
+    #app-page { display: none; flex-direction: column; min-height: 100vh; }
+    #app-page.show { display: flex; }
+
+    .app-bar {
+      background: var(--white); border-bottom: 1px solid var(--border);
+      height: 62px; padding: 0 32px;
       display: flex; align-items: center; justify-content: space-between;
       position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 0 var(--border);
     }
-    .app-logo {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
-      font-size: 22px; color: var(--text);
-      display: flex; align-items: center; gap: 8px;
+    .app-bar-brand {
+      display: flex; align-items: center; gap: 12px; text-decoration: none;
     }
-    .app-logo .bolt-icon { color: var(--accent); }
-    .header-right { display: flex; align-items: center; gap: 14px; }
-    .user-badge {
+    .brand-logo { width: 34px; height: 34px; object-fit: contain; }
+    .brand-logo-fallback {
+      width: 34px; height: 34px; background: var(--gold);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      color: #fff; font-family: 'Cormorant Garamond', serif; font-size: 16px;
+    }
+    .brand-text { display: flex; flex-direction: column; line-height: 1; }
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.25rem;
+      font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--ink);
+    }
+    .brand-sub { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-3); margin-top: 2px; }
+
+    .app-bar-right { display: flex; align-items: center; gap: 12px; }
+    .user-pill {
       display: flex; align-items: center; gap: 9px;
       background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 5px 14px;
+      border-radius: 99px; padding: 5px 14px 5px 6px;
     }
     .user-avatar {
-      width: 24px; height: 24px; background: var(--accent); border-radius: 50%;
+      width: 26px; height: 26px; border-radius: 50%; background: var(--gold);
       display: flex; align-items: center; justify-content: center;
-      color: #07090f; font-size: 11px; font-weight: 700;
-      font-family: 'Barlow Condensed', sans-serif;
+      color: #fff; font-size: 0.72rem; font-weight: 500;
+      font-family: 'Cormorant Garamond', serif; letter-spacing: 0.05em;
     }
-    .user-name { font-size: 13px; font-weight: 500; }
+    .user-name { font-size: 0.83rem; font-weight: 500; color: var(--ink-2); }
 
-    /* ==============================
+    /* ─────────────────────────────────────────
        NAV TABS
-    ============================== */
+    ───────────────────────────────────────── */
     .app-nav {
-      background: var(--surface); border-bottom: 1px solid var(--border);
-      padding: 0 24px; display: flex; gap: 0; overflow-x: auto;
+      background: var(--white); border-bottom: 1px solid var(--border);
+      padding: 0 32px; display: flex; gap: 2px; overflow-x: auto;
     }
-    .tab-btn {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-      font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--text-2); background: none; border: none;
-      border-bottom: 2px solid transparent; padding: 14px 20px;
-      cursor: pointer; transition: all 0.2s;
-      display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    .nav-tab {
+      font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.87rem;
+      color: var(--ink-3); background: none; border: none;
+      border-bottom: 2px solid transparent; padding: 14px 18px;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+      display: flex; align-items: center; gap: 7px;
     }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .nav-tab:hover { color: var(--ink); }
+    .nav-tab.on { color: var(--gold); border-bottom-color: var(--gold); font-weight: 500; }
+    .nav-tab .tab-icon { font-size: 1rem; }
 
-    /* ==============================
+    /* ─────────────────────────────────────────
        MAIN CONTENT
-    ============================== */
-    .app-main {
-      flex: 1; padding: 32px 24px;
-      max-width: 1040px; width: 100%; margin: 0 auto;
-    }
-    .tab-content { display: none; animation: fadeIn 0.25s ease; }
-    .tab-content.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    ───────────────────────────────────────── */
+    .app-main { flex: 1; padding: 36px 32px; max-width: 1060px; width: 100%; margin: 0 auto; }
+    .tab-pane { display: none; animation: fadeIn 0.25s ease; }
+    .tab-pane.on { display: block; }
 
-    .section-header { margin-bottom: 28px; }
-    .section-header h2 { font-size: 28px; display: flex; align-items: center; gap: 10px; }
-    .section-header h2 .icon { color: var(--accent); }
-    .section-header p { color: var(--text-2); font-size: 14px; margin-top: 6px; }
+    .page-title { margin-bottom: 30px; }
+    .page-title h2 { font-size: 2rem; font-weight: 400; color: var(--ink); }
+    .page-title p { color: var(--ink-3); font-size: 0.88rem; margin-top: 5px; }
+    .gold-rule { height: 2px; width: 40px; background: var(--gold); border-radius: 1px; margin-top: 10px; }
 
-    /* ==============================
+    /* ─────────────────────────────────────────
        CARDS
-    ============================== */
+    ───────────────────────────────────────── */
     .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 24px;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 28px; box-shadow: var(--shadow-sm);
     }
-    .card-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--text-2); margin-bottom: 16px;
-    }
-    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
-    .hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+    .card-title { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 20px; }
+    .card + .card { margin-top: 16px; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
 
-    /* ==============================
-       QR TAB
-    ============================== */
-    .qr-layout {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    /* ─────────────────────────────────────────
+       STATUS CHIPS
+    ───────────────────────────────────────── */
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 99px;
+      font-size: 0.78rem; font-weight: 500; white-space: nowrap;
     }
+    .chip-green  { background: var(--green-pale); color: var(--green); }
+    .chip-red    { background: var(--red-pale);   color: var(--red); }
+    .chip-gold   { background: var(--gold-pale);  color: var(--gold); }
 
-    .qr-preview-card {
-      display: flex; flex-direction: column; align-items: center;
+    /* ─────────────────────────────────────────
+       SUB-TABS (within QR tab)
+    ───────────────────────────────────────── */
+    .sub-tabs { display: flex; gap: 6px; margin-bottom: 24px; }
+    .sub-tab {
+      font-size: 0.82rem; font-weight: 500; padding: 8px 18px;
+      border-radius: 99px; border: 1px solid var(--border);
+      background: transparent; color: var(--ink-3); cursor: pointer;
+      transition: all 0.2s;
     }
+    .sub-tab.on { background: var(--gold); color: #fff; border-color: var(--gold); }
+    .sub-tab:not(.on):hover { border-color: var(--gold-mid); color: var(--gold); background: var(--gold-pale); }
+    .sub-pane { display: none; }
+    .sub-pane.on { display: block; }
 
-    .qr-display {
-      width: 100%; aspect-ratio: 1; max-width: 240px;
-      background: white; border-radius: var(--radius);
+    /* ─────────────────────────────────────────
+       QR DISPLAY
+    ───────────────────────────────────────── */
+    .qr-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .qr-box {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-lg); aspect-ratio: 1; max-width: 240px;
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 14px; padding: 16px;
+      margin: 0 auto 14px; padding: 18px; overflow: hidden;
     }
-    .qr-display.empty {
-      background: var(--surface-2); border: 2px dashed var(--border-2);
-    }
-    .qr-placeholder { text-align: center; color: var(--text-3); }
-    .qr-placeholder .ph-icon { font-size: 48px; margin-bottom: 8px; opacity: 0.5; }
-    .qr-placeholder p { font-size: 13px; }
-    #qr-code-container canvas, #qr-code-container img { max-width: 100%; height: auto; display: block; }
-
-    .battery-id-display {
-      background: var(--surface-3); border: 1px solid var(--border-2);
-      border-radius: var(--radius); padding: 10px 14px;
-      font-family: 'JetBrains Mono', monospace; font-size: 15px;
-      color: var(--accent); text-align: center; letter-spacing: 0.05em;
+    .qr-box.has-qr { background: #fff; }
+    .qr-box canvas, .qr-box img { max-width: 100%; height: auto; display: block; }
+    .qr-empty-state { text-align: center; }
+    .qr-empty-state .qr-icon { font-size: 40px; opacity: 0.3; margin-bottom: 8px; }
+    .qr-empty-state p { font-size: 0.8rem; color: var(--ink-3); }
+    .qr-id-pill {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 9px 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+      color: var(--gold); text-align: center; letter-spacing: 0.04em;
       word-break: break-all; width: 100%;
     }
 
-    /* ==============================
-       STATUS SELECTOR
-    ============================== */
-    .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-
-    .status-btn {
-      background: var(--surface-2); border: 2px solid var(--border);
-      border-radius: var(--radius); padding: 20px 12px;
-      cursor: pointer; transition: all 0.2s;
-      text-align: center; display: flex; flex-direction: column;
-      align-items: center; gap: 8px;
+    /* ─────────────────────────────────────────
+       BATCH PREVIEW LIST
+    ───────────────────────────────────────── */
+    .batch-list {
+      max-height: 220px; overflow-y: auto;
+      border: 1px solid var(--border); border-radius: var(--r);
+      background: var(--surface-2); padding: 8px;
     }
-    .status-btn:hover { border-color: var(--border-2); background: var(--surface-3); }
-    .status-btn .status-icon { font-size: 28px; }
-    .status-btn .status-label {
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-      font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2);
+    .batch-item {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      padding: 5px 10px; border-radius: 4px; color: var(--ink-2);
     }
-    .status-btn.sel-charged   { border-color: var(--green);  background: var(--green-dim);  }
-    .status-btn.sel-charged   .status-label { color: var(--green); }
-    .status-btn.sel-not-charged { border-color: var(--danger); background: var(--danger-dim); }
-    .status-btn.sel-not-charged .status-label { color: var(--danger); }
-    .status-btn.sel-other     { border-color: var(--orange); background: var(--orange-dim); }
-    .status-btn.sel-other     .status-label { color: var(--orange); }
+    .batch-item:nth-child(odd) { background: var(--white); }
 
-    .other-options {
+    /* ─────────────────────────────────────────
+       STATUS SELECTOR (Log tab)
+    ───────────────────────────────────────── */
+    .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .status-tile {
+      border: 1.5px solid var(--border); border-radius: var(--r-lg);
+      padding: 20px 10px; text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--white);
+    }
+    .status-tile:hover { border-color: var(--gold-mid); background: var(--gold-pale); }
+    .status-tile .st-icon { font-size: 26px; margin-bottom: 8px; }
+    .status-tile .st-label {
+      font-size: 0.78rem; font-weight: 500; letter-spacing: 0.04em;
+      text-transform: uppercase; color: var(--ink-3);
+    }
+    .status-tile.selected-charged    { border-color: var(--green); background: var(--green-pale); }
+    .status-tile.selected-charged    .st-label { color: var(--green); }
+    .status-tile.selected-notcharged { border-color: var(--red);   background: var(--red-pale); }
+    .status-tile.selected-notcharged .st-label { color: var(--red); }
+    .status-tile.selected-other      { border-color: var(--gold);  background: var(--gold-pale); }
+    .status-tile.selected-other      .st-label { color: var(--gold); }
+    .other-sub {
       background: var(--surface-2); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 16px;
-      display: none; margin-top: 12px;
+      border-radius: var(--r); padding: 16px; display: none; margin-top: 12px;
     }
-    .other-options.visible { display: block; }
+    .other-sub.visible { display: block; }
 
-    /* ==============================
+    /* ─────────────────────────────────────────
+       SCANNER MODAL
+    ───────────────────────────────────────── */
+    #scanner-modal .modal { max-width: 420px; }
+    #qr-reader { width: 100%; border-radius: var(--r); overflow: hidden; }
+    #qr-reader video { width: 100% !important; border-radius: var(--r); }
+    /* Override html5-qrcode default styles */
+    #qr-reader__dashboard { display: none !important; }
+    #qr-reader__scan_region { border: none !important; }
+    #qr-reader img { display: none !important; }
+
+    /* ─────────────────────────────────────────
+       HEALTH TAB
+    ───────────────────────────────────────── */
+    .health-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 22px 20px; box-shadow: var(--shadow-sm);
+    }
+    .stat-card .stat-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+    .stat-card .stat-num {
+      font-family: 'Cormorant Garamond', serif; font-size: 2.4rem;
+      font-weight: 400; color: var(--ink); line-height: 1.1; margin: 6px 0 2px;
+    }
+    .stat-card .stat-num.gold { color: var(--gold); }
+    .stat-card .stat-sub { font-size: 0.77rem; color: var(--ink-3); }
+
+    .health-bar-wrap { margin-top: 4px; }
+    .health-bar-bg { background: var(--cream); border-radius: 99px; height: 5px; overflow: hidden; margin-top: 6px; }
+    .health-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+
+    /* ─────────────────────────────────────────
        RECORDS / TABLE
-    ============================== */
-    .filter-bar {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 16px 20px;
-      display: flex; flex-wrap: wrap; gap: 12px;
-      align-items: flex-end; margin-bottom: 16px;
+    ───────────────────────────────────────── */
+    .filter-strip {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 18px 22px;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+      margin-bottom: 14px; box-shadow: var(--shadow-sm);
     }
-    .filter-bar .form-group { margin-bottom: 0; flex: 1; min-width: 130px; }
-    .filter-bar .form-group label { margin-bottom: 6px; }
-    .filter-actions { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+    .filter-strip .field { margin-bottom: 0; flex: 1; min-width: 130px; }
+    .filter-actions { display: flex; gap: 8px; align-items: flex-end; }
 
-    .records-table-wrap {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); overflow: hidden;
+    .table-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow-sm);
     }
-    .table-header {
-      padding: 14px 20px; border-bottom: 1px solid var(--border);
+    .table-card-header {
+      padding: 16px 22px; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center;
     }
-    .records-count { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: var(--text-2); }
-    .records-count strong { color: var(--accent); font-size: 20px; }
+    .rec-count { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--ink-2); }
+    .rec-count strong { color: var(--ink); }
     .table-scroll { overflow-x: auto; }
-
     table { width: 100%; border-collapse: collapse; }
-    thead { background: var(--surface-2); }
     thead th {
-      padding: 11px 16px; text-align: left;
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--text-2); white-space: nowrap;
+      padding: 11px 18px; text-align: left; background: var(--surface-2);
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+      border-bottom: 1px solid var(--border);
     }
     tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface-2); }
-    tbody td { padding: 12px 16px; font-size: 14px; vertical-align: middle; }
-    td.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); }
+    tbody td { padding: 13px 18px; font-size: 0.88rem; vertical-align: middle; }
+    td.mono-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--gold); }
+    td.ts { color: var(--ink-3); font-size: 0.82rem; white-space: nowrap; }
+    td.notes-cell { color: var(--ink-3); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty-table { text-align: center; padding: 60px 24px; }
+    .empty-table .ei { font-size: 40px; opacity: 0.25; margin-bottom: 10px; }
+    .empty-table p { color: var(--ink-3); font-size: 0.88rem; }
 
-    .status-badge {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 4px 10px; border-radius: 12px;
-      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
-      font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
-    }
-    .badge-charged     { background: var(--green-dim);  color: var(--green);  }
-    .badge-not-charged { background: var(--danger-dim); color: var(--danger); }
-    .badge-other       { background: var(--orange-dim); color: var(--orange); }
+    /* confirm delete inline */
+    .del-confirm { display: flex; gap: 6px; align-items: center; }
+    .del-confirm .btn { font-size: 0.78rem; padding: 5px 10px; }
 
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-3); }
-    .empty-state .empty-icon { font-size: 44px; margin-bottom: 12px; }
-    .empty-state p { font-size: 14px; }
+    /* ─────────────────────────────────────────
+       LOADING BAR
+    ───────────────────────────────────────── */
+    .loading-row td { padding: 24px; text-align: center; color: var(--ink-3); font-size: 0.88rem; }
 
-    /* ==============================
-       LOADING SPINNER
-    ============================== */
-    .spinner {
-      width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.15);
-      border-top-color: currentColor; border-radius: 50%;
-      animation: spin 0.65s linear infinite; display: inline-block; vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ==============================
+    /* ─────────────────────────────────────────
        RESPONSIVE
-    ============================== */
-    @media (max-width: 680px) {
+    ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .health-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      #login-page { flex-direction: column; }
+      .login-left { padding: 40px 30px 20px; }
+      .login-right { width: 100%; padding: 30px; }
+      .login-right::before { display: none; }
       .qr-layout { grid-template-columns: 1fr; }
       .status-grid { gap: 8px; }
-      .status-btn { padding: 14px 8px; }
-      .status-btn .status-icon { font-size: 22px; }
-      .filter-bar { gap: 10px; }
-      .filter-bar .form-group { min-width: 100%; }
-      .filter-actions { flex-wrap: wrap; }
-      .app-main { padding: 20px 14px; }
-      .login-card { padding: 36px 24px; margin: 16px; }
+      .status-tile { padding: 14px 8px; }
+      .app-bar { padding: 0 16px; }
+      .app-nav { padding: 0 16px; }
+      .app-main { padding: 24px 16px; }
+      .health-stats { grid-template-columns: repeat(2, 1fr); }
+      .filter-strip { gap: 10px; }
+      .filter-strip .field { min-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .health-stats { grid-template-columns: 1fr 1fr; }
+      .login-tagline { font-size: 1.8rem; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ============================================================
-       SETUP MODAL
-  ============================================================ -->
-  <div class="overlay hidden" id="setup-overlay">
-    <div class="modal">
-      <h2>⚙️ Connect to Google Sheets</h2>
-      <p>
-        Paste your <strong>Google Apps Script Web App URL</strong> below.<br>
-        This connects VoltLog to your Google Sheet for data storage.<br>
-        See <code>README.md</code> for step-by-step setup instructions.
-      </p>
-      <div class="form-group">
-        <label>Apps Script URL</label>
-        <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/..." />
+<!-- ══════════════════════════════════════════
+     LOGIN
+══════════════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="logo-wrap">
+        <img src="logo.png" alt="Taigu" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="logo-fallback" style="display:none">T</div>
       </div>
-      <div id="setup-msg" class="msg"></div>
-      <br>
-      <button class="btn btn-primary btn-full" onclick="saveScriptUrl()">Save & Continue</button>
+      <h1>Taigu</h1>
+      <p>Battery Tool</p>
+    </div>
+    <div class="login-tagline">
+      Precision tracking<br>for every <em>charge cycle.</em>
     </div>
   </div>
 
-  <!-- ============================================================
-       LOGIN SCREEN
-  ============================================================ -->
-  <div id="login-screen">
-    <div class="login-card">
-      <div class="login-logo">
-        <div class="bolt">⚡</div>
-        <h1>Volt<span>Log</span></h1>
-        <p>E-Bike Battery Management</p>
-      </div>
+  <div class="login-right">
+    <h2 class="serif">Sign in</h2>
+    <p class="sub">Access your battery management dashboard</p>
 
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="login-username" placeholder="Enter username" autocomplete="username" />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" />
-      </div>
-
-      <div id="login-msg" class="msg"></div>
-      <br>
-
-      <button class="btn btn-primary btn-full" id="login-btn" onclick="handleLogin()">Sign In</button>
-
-      <p style="margin-top: 18px; text-align: center; font-size: 12px; color: var(--text-3);">
-        Contact your admin to add/reset accounts
-      </p>
-      <hr class="divider">
-      <button class="btn btn-secondary btn-full btn-sm" onclick="document.getElementById('setup-overlay').classList.remove('hidden')">
-        ⚙️ Configure API URL
-      </button>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="l-user" placeholder="Enter username" autocomplete="username" />
     </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="l-pass" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+    <div id="login-msg" class="msg"></div>
+    <br>
+    <button class="btn btn-gold btn-full" id="login-btn" onclick="doLogin()">Sign In</button>
+
+    <div class="login-divider"></div>
+    <p class="login-note">Contact your administrator to manage accounts</p>
   </div>
+</div>
 
-  <!-- ============================================================
-       MAIN APP
-  ============================================================ -->
-  <div id="app-screen" class="hidden">
+<!-- ══════════════════════════════════════════
+     APP
+══════════════════════════════════════════ -->
+<div id="app-page">
 
-    <!-- HEADER -->
-    <header class="app-header">
-      <div class="app-logo">
-        <span class="bolt-icon">⚡</span> VoltLog
+  <!-- APP BAR -->
+  <header class="app-bar">
+    <div class="app-bar-brand">
+      <img src="logo.png" class="brand-logo" alt="Taigu" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="brand-logo-fallback" style="display:none">T</div>
+      <div class="brand-text">
+        <span class="brand-name">Taigu</span>
+        <span class="brand-sub">Battery Tool</span>
       </div>
-      <div class="header-right">
-        <div class="user-badge">
-          <div class="user-avatar" id="user-avatar">A</div>
-          <span class="user-name" id="user-name-display">User</span>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Sign Out</button>
+    </div>
+    <div class="app-bar-right">
+      <div class="user-pill">
+        <div class="user-avatar" id="uav">A</div>
+        <span class="user-name" id="uname">User</span>
       </div>
-    </header>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
 
-    <!-- NAV -->
-    <nav class="app-nav">
-      <button class="tab-btn active" data-tab="qr"      onclick="switchTab('qr')">📷 Generate QR</button>
-      <button class="tab-btn"        data-tab="log"     onclick="switchTab('log')">🔋 Log Battery</button>
-      <button class="tab-btn"        data-tab="records" onclick="switchTab('records')">📊 Records</button>
-    </nav>
+  <!-- NAV -->
+  <nav class="app-nav">
+    <button class="nav-tab on"  data-tab="qr"      onclick="tab('qr')">     <span class="tab-icon">⬛</span> QR Generator</button>
+    <button class="nav-tab"     data-tab="log"     onclick="tab('log')">    <span class="tab-icon">🔋</span> Scan & Log</button>
+    <button class="nav-tab"     data-tab="health"  onclick="tab('health')"> <span class="tab-icon">📈</span> Battery Health</button>
+    <button class="nav-tab"     data-tab="records" onclick="tab('records')"><span class="tab-icon">📋</span> Records</button>
+  </nav>
 
-    <!-- MAIN -->
-    <main class="app-main">
+  <!-- MAIN -->
+  <main class="app-main">
 
-      <!-- ========================
-           TAB: QR GENERATOR
-      ========================= -->
-      <section id="tab-qr" class="tab-content active">
-        <div class="section-header">
-          <h2><span class="icon">📷</span> QR Code Generator</h2>
-          <p>Generate a QR code and register new batteries in the system</p>
-        </div>
+    <!-- ═══════ TAB: QR GENERATOR ═══════ -->
+    <section id="tab-qr" class="tab-pane on">
+      <div class="page-title">
+        <h2 class="serif">QR Generator</h2>
+        <p>Create QR codes for single batteries or generate a batch and export as PDF</p>
+        <div class="gold-rule"></div>
+      </div>
 
+      <!-- Sub-tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab on" onclick="subTab('qr','single')">Single Battery</button>
+        <button class="sub-tab"    onclick="subTab('qr','batch')">Batch Generation</button>
+      </div>
+
+      <!-- ── SINGLE ── -->
+      <div id="subqr-single" class="sub-pane on">
         <div class="qr-layout">
-
-          <!-- LEFT: Controls -->
-          <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Controls -->
+          <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="card">
-              <p class="card-label">Battery ID</p>
-              <div class="input-row">
-                <div class="form-group mono-input">
-                  <input type="text" id="qr-battery-id" placeholder="e.g. BAT-20240115-A1B2" oninput="onBatteryIdInput()" />
+              <p class="card-title">Battery Identifier</p>
+              <div class="row">
+                <div class="field mono">
+                  <input type="text" id="qr-id" placeholder="e.g. TAIGU-20240115-001" oninput="onQrInput()" />
                 </div>
-                <button class="btn btn-secondary btn-icon" onclick="autoGenerateId()" title="Auto-generate ID">🎲</button>
+                <button class="btn btn-ghost" onclick="autoId()" title="Auto-generate ID" style="flex-shrink:0;border:1px solid var(--border);border-radius:var(--r);height:40px;margin-top:22px;">
+                  ↻
+                </button>
               </div>
-              <p class="hint">Type an ID or click 🎲 to auto-generate one</p>
+              <p class="hint">Enter a custom ID or click ↻ to auto-generate</p>
               <hr class="divider">
-              <button class="btn btn-primary btn-full" onclick="generateQR()">📷 Generate QR Code</button>
-              <div id="qr-msg" class="msg"></div>
+              <button class="btn btn-gold btn-full" onclick="genQR()">Generate QR Code</button>
+              <div id="qr-gen-msg" class="msg"></div>
             </div>
 
             <div class="card">
-              <p class="card-label">Actions</p>
-              <div style="display:flex; flex-direction:column; gap:10px;">
-                <button class="btn btn-secondary btn-full" id="download-qr-btn" onclick="downloadQR()" disabled>
-                  ⬇️ Download QR Image
+              <p class="card-title">Export & Register</p>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <button class="btn btn-outline btn-full" id="dl-qr-btn" onclick="dlQR()" disabled>
+                  ↓ &nbsp;Download QR Image
                 </button>
-                <button class="btn btn-success btn-full" id="register-battery-btn" onclick="registerBattery()" disabled>
-                  ✅ Register Battery in System
+                <button class="btn btn-gold btn-full" id="reg-btn" onclick="regBattery()" disabled>
+                  ✓ &nbsp;Register Battery in System
                 </button>
               </div>
-              <div id="register-msg" class="msg"></div>
+              <div id="reg-msg" class="msg"></div>
             </div>
           </div>
 
-          <!-- RIGHT: Preview -->
-          <div class="card qr-preview-card">
-            <p class="card-label" style="align-self:flex-start;">QR Preview</p>
-            <div class="qr-display empty" id="qr-display">
-              <div class="qr-placeholder" id="qr-placeholder">
-                <div class="ph-icon">🔲</div>
-                <p>QR code will<br>appear here</p>
+          <!-- QR Preview -->
+          <div class="card" style="display:flex;flex-direction:column;align-items:center;">
+            <p class="card-title" style="align-self:flex-start;">Preview</p>
+            <div class="qr-box" id="qr-box">
+              <div class="qr-empty-state" id="qr-empty">
+                <div class="qr-icon">▪▫▪</div>
+                <p>QR code will appear here</p>
               </div>
-              <div id="qr-code-container" style="display:none; width:100%;"></div>
+              <div id="qr-canvas-wrap" style="display:none;width:100%;"></div>
             </div>
-            <div class="battery-id-display" id="qr-id-display" style="display:none;">—</div>
+            <div class="qr-id-pill" id="qr-id-pill" style="display:none;"></div>
           </div>
-
         </div>
-      </section>
+      </div>
 
-      <!-- ========================
-           TAB: LOG BATTERY
-      ========================= -->
-      <section id="tab-log" class="tab-content">
-        <div class="section-header">
-          <h2><span class="icon">🔋</span> Log Battery Status</h2>
-          <p>Record the current charge status of a battery</p>
+      <!-- ── BATCH ── -->
+      <div id="subqr-batch" class="sub-pane">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="card">
+              <p class="card-title">Batch Configuration</p>
+              <div class="field mono">
+                <label>ID Prefix</label>
+                <input type="text" id="b-prefix" placeholder="TAIGU" value="TAIGU" />
+              </div>
+              <div class="row">
+                <div class="field">
+                  <label>Start Number</label>
+                  <input type="number" id="b-start" value="1" min="1" />
+                </div>
+                <div class="field">
+                  <label>Count</label>
+                  <input type="number" id="b-count" value="10" min="1" max="100" />
+                </div>
+              </div>
+              <hr class="divider">
+              <button class="btn btn-gold btn-full" onclick="previewBatch()">Preview IDs</button>
+              <div id="batch-msg" class="msg"></div>
+            </div>
+
+            <div class="card">
+              <p class="card-title">Export</p>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+                <button class="btn btn-outline btn-full" id="batch-pdf-btn" onclick="exportBatchPDF()" disabled>
+                  ↓ &nbsp;Download PDF (all QR codes)
+                </button>
+                <button class="btn btn-gold btn-full" id="batch-reg-btn" onclick="regBatch()" disabled>
+                  ✓ &nbsp;Register All in System
+                </button>
+              </div>
+              <div id="batch-reg-msg" class="msg"></div>
+            </div>
+          </div>
+
+          <!-- Batch preview list -->
+          <div class="card">
+            <p class="card-title">ID Preview — <span id="batch-count-label" style="color:var(--ink);">0 batteries</span></p>
+            <div class="batch-list" id="batch-list">
+              <div class="batch-item" style="color:var(--ink-4);text-align:center;padding:30px 0;">
+                Configure and click Preview
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ TAB: SCAN & LOG ═══════ -->
+    <section id="tab-log" class="tab-pane">
+      <div class="page-title">
+        <h2 class="serif">Scan & Log</h2>
+        <p>Scan a QR code or enter an ID manually, then record the battery status</p>
+        <div class="gold-rule"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div class="card">
+            <p class="card-title">Battery Identification</p>
+            <div class="row">
+              <div class="field mono" style="flex:1;">
+                <label>Battery ID</label>
+                <input type="text" id="log-id" placeholder="Scan or type battery ID" />
+              </div>
+              <button class="btn btn-outline" onclick="openScanner()" style="flex-shrink:0;margin-top:22px;" title="Scan QR with camera">
+                📷
+              </button>
+            </div>
+            <p class="hint">Tap 📷 to use your camera to scan a QR code</p>
+          </div>
+
+          <div class="card">
+            <p class="card-title">Notes <span style="font-weight:300;text-transform:none;letter-spacing:0;">(optional)</span></p>
+            <div class="field" style="margin-bottom:0;">
+              <textarea id="log-notes" placeholder="Additional observations about this battery…" rows="3"></textarea>
+            </div>
+          </div>
+
+          <div id="log-msg" class="msg"></div>
+          <button class="btn btn-gold btn-full" id="log-submit" onclick="submitLog()">Submit Battery Log</button>
         </div>
 
         <div class="card">
-          <!-- Battery ID -->
-          <div class="form-group">
-            <label>Battery ID</label>
-            <div class="input-row">
-              <div class="form-group mono-input">
-                <input type="text" id="log-battery-id" placeholder="Enter or scan battery ID" />
-              </div>
-              <button class="btn btn-secondary btn-icon" onclick="toggleBatteryPicker()" title="Pick from registered batteries">📋</button>
-            </div>
-          </div>
-
-          <!-- Battery picker (hidden by default) -->
-          <div id="battery-picker" style="display:none; margin-top:-8px; margin-bottom:16px;">
-            <div class="form-group">
-              <select id="battery-select" onchange="pickBattery(this.value)">
-                <option value="">— Loading batteries… —</option>
-              </select>
-            </div>
-          </div>
-
-          <hr class="divider">
-
-          <!-- Status selection -->
-          <label style="display:block; font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-2); margin-bottom:12px;">Charge Status</label>
-
+          <p class="card-title">Charge Status</p>
           <div class="status-grid">
-            <button class="status-btn" id="status-btn-charged"     onclick="selectStatus('Charged')">
-              <span class="status-icon">✅</span>
-              <span class="status-label">Charged</span>
-            </button>
-            <button class="status-btn" id="status-btn-not-charged" onclick="selectStatus('Not Charged')">
-              <span class="status-icon">❌</span>
-              <span class="status-label">Not Charged</span>
-            </button>
-            <button class="status-btn" id="status-btn-other"       onclick="selectStatus('Other')">
-              <span class="status-icon">⚙️</span>
-              <span class="status-label">Other</span>
-            </button>
+            <div class="status-tile" id="st-charged"    onclick="setStatus('Charged')">
+              <div class="st-icon">✅</div>
+              <div class="st-label">Charged</div>
+            </div>
+            <div class="status-tile" id="st-notcharged" onclick="setStatus('Not Charged')">
+              <div class="st-icon">🪫</div>
+              <div class="st-label">Not Charged</div>
+            </div>
+            <div class="status-tile" id="st-other"      onclick="setStatus('Other')">
+              <div class="st-icon">⚙️</div>
+              <div class="st-label">Other</div>
+            </div>
           </div>
-
-          <!-- Other sub-options -->
-          <div class="other-options" id="other-options">
-            <div class="form-group" style="margin-bottom:0;">
-              <label>Specify Status</label>
-              <select id="other-status-select">
+          <div class="other-sub" id="other-sub">
+            <div class="field" style="margin-bottom:0;">
+              <label>Specify Condition</label>
+              <select id="other-val">
                 <option value="Faulty">⚠️ Faulty / Damaged</option>
                 <option value="10%">🔋 10% Charged</option>
                 <option value="20%">🔋 20% Charged</option>
@@ -647,560 +785,778 @@
               </select>
             </div>
           </div>
-
-          <hr class="divider">
-
-          <div class="form-group">
-            <label>Notes <span style="color:var(--text-3); font-size:10px;">(optional)</span></label>
-            <textarea id="log-notes" placeholder="Any additional notes about this battery…" rows="2"></textarea>
-          </div>
-
-          <div id="log-msg" class="msg"></div>
-          <br>
-          <button class="btn btn-primary btn-full" id="log-submit-btn" onclick="submitLog()">🔋 Submit Log</button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- ========================
-           TAB: RECORDS
-      ========================= -->
-      <section id="tab-records" class="tab-content">
-        <div class="section-header">
-          <h2><span class="icon">📊</span> Battery Records</h2>
-          <p>View, search, and export all battery status logs</p>
+    <!-- ═══════ TAB: BATTERY HEALTH ═══════ -->
+    <section id="tab-health" class="tab-pane">
+      <div class="page-title">
+        <h2 class="serif">Battery Health</h2>
+        <p>Cycle counts and health estimates for all registered batteries</p>
+        <div class="gold-rule"></div>
+      </div>
+
+      <!-- Summary stats -->
+      <div class="health-stats">
+        <div class="stat-card">
+          <div class="stat-label">Total Batteries</div>
+          <div class="stat-num" id="h-total">—</div>
+          <div class="stat-sub">registered</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Health</div>
+          <div class="stat-num gold" id="h-avg-health">—</div>
+          <div class="stat-sub">across all batteries</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total Cycles</div>
+          <div class="stat-num" id="h-cycles">—</div>
+          <div class="stat-sub">charge cycles logged</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Attention Needed</div>
+          <div class="stat-num" id="h-attention" style="color:var(--red);">—</div>
+          <div class="stat-sub">batteries below 50%</div>
+        </div>
+      </div>
 
-        <!-- FILTERS -->
-        <div class="filter-bar">
-          <div class="form-group">
-            <label>Battery ID</label>
-            <input type="text" id="filter-battery-id" placeholder="Search…" style="font-family:'JetBrains Mono',monospace;font-size:13px;" oninput="applyFilters()" />
-          </div>
-          <div class="form-group">
-            <label>Status</label>
-            <select id="filter-status" onchange="applyFilters()">
-              <option value="">All Statuses</option>
-              <option value="Charged">✅ Charged</option>
-              <option value="Not Charged">❌ Not Charged</option>
-              <option value="Faulty">⚠️ Faulty</option>
-              <option value="10%">🔋 10%</option>
-              <option value="20%">🔋 20%</option>
-              <option value="30%">🔋 30%</option>
-              <option value="40%">🔋 40%</option>
-              <option value="50%">🔋 50%</option>
-              <option value="60%">🔋 60%</option>
-              <option value="70%">🔋 70%</option>
-              <option value="80%">🔋 80%</option>
-              <option value="90%">🔋 90%</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>From Date</label>
-            <input type="date" id="filter-date-from" onchange="applyFilters()" />
-          </div>
-          <div class="form-group">
-            <label>To Date</label>
-            <input type="date" id="filter-date-to" onchange="applyFilters()" />
-          </div>
-          <div class="form-group">
-            <label>Logged By</label>
-            <input type="text" id="filter-user" placeholder="Username…" oninput="applyFilters()" />
-          </div>
-          <div class="filter-actions">
-            <button class="btn btn-secondary btn-sm" onclick="clearFilters()">✕ Clear</button>
-            <button class="btn btn-secondary btn-sm" onclick="loadRecords()">↻ Refresh</button>
-            <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇️ CSV</button>
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="rec-count"><strong id="h-bat-count">0</strong> batteries tracked</div>
+          <button class="btn btn-outline btn-sm" onclick="loadHealth()">↻ Refresh</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Battery ID</th>
+                <th>Health</th>
+                <th>Charge Cycles</th>
+                <th>Total Logs</th>
+                <th>Last Status</th>
+                <th>Last Logged</th>
+              </tr>
+            </thead>
+            <tbody id="health-tbody">
+              <tr class="loading-row"><td colspan="6">Load the Health tab to compute statistics</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════ TAB: RECORDS ═══════ -->
+    <section id="tab-records" class="tab-pane">
+      <div class="page-title">
+        <h2 class="serif">Records</h2>
+        <p>Complete history of all battery status logs with filtering and export</p>
+        <div class="gold-rule"></div>
+      </div>
+
+      <div class="filter-strip">
+        <div class="field">
+          <label>Battery ID</label>
+          <input type="text" id="f-id" placeholder="Search…" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;" oninput="filterRecs()" />
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="f-status" onchange="filterRecs()">
+            <option value="">All Statuses</option>
+            <option value="Charged">Charged</option>
+            <option value="Not Charged">Not Charged</option>
+            <option value="Faulty">Faulty</option>
+            <option value="10%">10%</option>
+            <option value="20%">20%</option>
+            <option value="30%">30%</option>
+            <option value="40%">40%</option>
+            <option value="50%">50%</option>
+            <option value="60%">60%</option>
+            <option value="70%">70%</option>
+            <option value="80%">80%</option>
+            <option value="90%">90%</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Date From</label>
+          <input type="date" id="f-from" onchange="filterRecs()" />
+        </div>
+        <div class="field">
+          <label>Date To</label>
+          <input type="date" id="f-to"   onchange="filterRecs()" />
+        </div>
+        <div class="field">
+          <label>Logged By</label>
+          <input type="text" id="f-user" placeholder="Username…" oninput="filterRecs()" />
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-outline btn-sm" onclick="clearFilters()">✕ Clear</button>
+          <button class="btn btn-outline btn-sm" onclick="loadRecords()">↻ Refresh</button>
+          <button class="btn btn-gold btn-sm"    onclick="exportCSV()">↓ CSV</button>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-card-header">
+          <div class="rec-count"><strong id="rec-count">0</strong> records</div>
+          <div id="rec-loading" style="display:none;font-size:0.82rem;color:var(--ink-3);">
+            <span class="spin" style="color:var(--gold);"></span>&nbsp;Loading…
           </div>
         </div>
-
-        <!-- TABLE -->
-        <div class="records-table-wrap">
-          <div class="table-header">
-            <div class="records-count">
-              <strong id="records-count-num">0</strong> records
-            </div>
-            <div id="records-loading" style="display:none;">
-              <span class="spinner" style="color:var(--accent);"></span>&nbsp; Loading…
-            </div>
-          </div>
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>Battery ID</th>
-                  <th>Status</th>
-                  <th>Logged By</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="records-tbody">
-                <tr>
-                  <td colspan="5">
-                    <div class="empty-state">
-                      <div class="empty-icon">📋</div>
-                      <p>Click the Records tab to load data</p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Battery ID</th>
+                <th>Status</th>
+                <th>Logged By</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="rec-tbody"></tbody>
+          </table>
         </div>
-      </section>
+      </div>
+    </section>
 
-    </main>
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCANNER MODAL
+══════════════════════════════════════════ -->
+<div class="overlay hidden" id="scanner-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="serif">Scan QR Code</h2>
+      <p>Point your camera at a battery QR code to automatically fill the Battery ID.</p>
+    </div>
+    <div id="qr-reader"></div>
+    <div id="scan-msg" class="msg"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeScanner()">Cancel</button>
+    </div>
   </div>
+</div>
 
-  <!-- ============================================================
-       JAVASCRIPT
-  ============================================================ -->
-  <script>
-    // =====================================================
-    // STATE
-    // =====================================================
-    const CONFIG_KEY  = 'voltlog_script_url';
-    const SESSION_KEY = 'voltlog_session';
+<!-- ══════════════════════════════════════════
+     HIDDEN QR RENDER AREA (for batch PDF)
+══════════════════════════════════════════ -->
+<div id="batch-qr-render" style="position:absolute;left:-9999px;top:0;"></div>
 
-    const state = {
-      scriptUrl:      localStorage.getItem(CONFIG_KEY) || '',
-      user:           null,
-      allLogs:        [],
-      filteredLogs:   [],
-      currentQrId:    null,
-      selectedStatus: null,
-      qrGenerated:    false,
-      recordsLoaded:  false,
-    };
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────
+const API = 'https://script.google.com/macros/s/AKfycbxeQ6Zp6jcLsH1KNd5dyr4Z6WFSKRCHQUAEY0lJ3Z1kjtxfJrfdJnngNEU3FX-FCega0Q/exec';
+const SESSION_KEY = 'taigu_session';
+const MAX_CYCLES  = 500; // cycles considered 100% → 0% health
 
-    // =====================================================
-    // INIT
-    // =====================================================
-    window.addEventListener('load', () => {
-      if (!state.scriptUrl) {
-        document.getElementById('setup-overlay').classList.remove('hidden');
-      }
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+const S = {
+  user:          null,
+  selectedStatus: null,
+  qrReady:       false,
+  currentQrId:   null,
+  batchIds:      [],
+  allLogs:       [],
+  filteredLogs:  [],
+  healthLoaded:  false,
+  recordsLoaded: false,
+  scanner:       null,
+};
 
-      // Restore session
-      try {
-        const saved = localStorage.getItem(SESSION_KEY);
-        if (saved) {
-          state.user = JSON.parse(saved);
-          showApp();
-        }
-      } catch(e) { localStorage.removeItem(SESSION_KEY); }
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+window.addEventListener('load', () => {
+  try {
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) { S.user = JSON.parse(saved); showApp(); }
+  } catch(e) { localStorage.removeItem(SESSION_KEY); }
 
-      // Enter key on login
-      ['login-username', 'login-password'].forEach(id => {
-        document.getElementById(id).addEventListener('keydown', e => {
-          if (e.key === 'Enter') handleLogin();
+  document.getElementById('l-pass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+// ─────────────────────────────────────────
+// API HELPER
+// ─────────────────────────────────────────
+async function api(action, payload = {}) {
+  const body = { action, ...payload };
+  if (S.user) { body.username = S.user.username; body.password = S.user.password; }
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Server error');
+  return data;
+}
+
+// ─────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────
+async function doLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value;
+  if (!u || !p) { msg('login-msg', 'Please enter your credentials', 'error'); return; }
+
+  const btn = document.getElementById('login-btn');
+  setBtn(btn, true, '<span class="spin"></span>&nbsp; Signing in…');
+  try {
+    const d = await api('login', { username: u, password: p });
+    S.user = { username: d.username, role: d.role || 'user', password: p };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(S.user));
+    showApp();
+  } catch(e) {
+    msg('login-msg', e.message || 'Login failed', 'error');
+  } finally {
+    setBtn(btn, false, 'Sign In');
+  }
+}
+
+function doLogout() {
+  S.user = null; S.allLogs = []; S.filteredLogs = [];
+  S.recordsLoaded = false; S.healthLoaded = false;
+  localStorage.removeItem(SESSION_KEY);
+  document.getElementById('login-page').style.display = '';
+  document.getElementById('app-page').classList.remove('show');
+  document.getElementById('l-pass').value = '';
+}
+
+function showApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app-page').classList.add('show');
+  document.getElementById('uname').textContent = S.user.username;
+  document.getElementById('uav').textContent = S.user.username.charAt(0).toUpperCase();
+}
+
+// ─────────────────────────────────────────
+// TAB NAVIGATION
+// ─────────────────────────────────────────
+function tab(name) {
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('on', p.id === 'tab-' + name));
+  if (name === 'records' && !S.recordsLoaded) loadRecords();
+  if (name === 'health'  && !S.healthLoaded)  loadHealth();
+}
+
+function subTab(group, name) {
+  const container = document.getElementById('tab-' + group);
+  container.querySelectorAll('.sub-tab').forEach((b, i) => {
+    const panes = container.querySelectorAll('.sub-pane');
+    b.classList.toggle('on', b.textContent.toLowerCase().includes(name === 'single' ? 'single' : 'batch'));
+    panes[i] && panes[i].classList.toggle('on', b.classList.contains('on'));
+  });
+}
+
+// ─────────────────────────────────────────
+// QR — SINGLE
+// ─────────────────────────────────────────
+function autoId() {
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
+  document.getElementById('qr-id').value = `TAIGU-${date}-${rand}`;
+  onQrInput();
+}
+
+function onQrInput() {
+  S.qrReady = false; S.currentQrId = null;
+  document.getElementById('dl-qr-btn').disabled = true;
+  document.getElementById('reg-btn').disabled = true;
+}
+
+function genQR() {
+  const id = document.getElementById('qr-id').value.trim();
+  if (!id) { msg('qr-gen-msg', 'Please enter a Battery ID', 'error'); return; }
+
+  const wrap = document.getElementById('qr-canvas-wrap');
+  wrap.innerHTML = '';
+  new QRCode(wrap, {
+    text: id, width: 200, height: 200,
+    colorDark: '#0f0e0b', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H,
+  });
+
+  document.getElementById('qr-empty').style.display = 'none';
+  wrap.style.display = 'block';
+  document.getElementById('qr-box').classList.add('has-qr');
+
+  const pill = document.getElementById('qr-id-pill');
+  pill.textContent = id; pill.style.display = 'block';
+
+  S.currentQrId = id; S.qrReady = true;
+  document.getElementById('dl-qr-btn').disabled = false;
+  document.getElementById('reg-btn').disabled = false;
+  msg('qr-gen-msg', `QR code generated for ${id}`, 'info');
+}
+
+function dlQR() {
+  if (!S.qrReady) return;
+  const el = document.querySelector('#qr-canvas-wrap canvas') || document.querySelector('#qr-canvas-wrap img');
+  if (!el) return;
+  const a = document.createElement('a');
+  a.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
+  a.download = `QR-${S.currentQrId}.png`;
+  a.click();
+}
+
+async function regBattery() {
+  if (!S.currentQrId) return;
+  const btn = document.getElementById('reg-btn');
+  setBtn(btn, true, '<span class="spin"></span>&nbsp; Registering…');
+  try {
+    await api('addBattery', { batteryId: S.currentQrId });
+    msg('reg-msg', `Battery "${S.currentQrId}" registered successfully`, 'ok');
+    btn.disabled = true; btn.innerHTML = '✓ &nbsp;Registered';
+    S.healthLoaded = false; S.recordsLoaded = false;
+  } catch(e) {
+    msg('reg-msg', e.message, 'error');
+    setBtn(btn, false, '✓ &nbsp;Register Battery in System');
+  }
+}
+
+// ─────────────────────────────────────────
+// QR — BATCH
+// ─────────────────────────────────────────
+let batchPreviewIds = [];
+
+function previewBatch() {
+  const prefix = document.getElementById('b-prefix').value.trim() || 'TAIGU';
+  const start  = parseInt(document.getElementById('b-start').value)  || 1;
+  const count  = Math.min(parseInt(document.getElementById('b-count').value) || 10, 100);
+
+  batchPreviewIds = [];
+  for (let i = start; i < start + count; i++) {
+    batchPreviewIds.push(`${prefix}-${String(i).padStart(3, '0')}`);
+  }
+
+  const listEl = document.getElementById('batch-list');
+  listEl.innerHTML = batchPreviewIds.map(id =>
+    `<div class="batch-item">${esc(id)}</div>`
+  ).join('');
+
+  document.getElementById('batch-count-label').textContent = `${batchPreviewIds.length} batteries`;
+  document.getElementById('batch-pdf-btn').disabled = false;
+  document.getElementById('batch-reg-btn').disabled = false;
+  msg('batch-msg', `${batchPreviewIds.length} IDs ready`, 'info');
+}
+
+async function exportBatchPDF() {
+  if (!batchPreviewIds.length) return;
+  const btn = document.getElementById('batch-pdf-btn');
+  setBtn(btn, true, '<span class="spin"></span>&nbsp; Generating PDF…');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const PW = 210, PH = 297;
+    const cols = 3, rows = 4;
+    const marginX = 14, marginY = 20;
+    const cellW = (PW - marginX * 2) / cols;
+    const cellH = (PH - marginY * 2) / rows;
+    const qrSize = Math.min(cellW, cellH) * 0.68;
+
+    const renderEl = document.getElementById('batch-qr-render');
+    renderEl.innerHTML = '';
+
+    // Pre-render all QR codes
+    const canvases = await Promise.all(batchPreviewIds.map(id => {
+      return new Promise(resolve => {
+        const div = document.createElement('div');
+        renderEl.appendChild(div);
+        new QRCode(div, {
+          text: id, width: 200, height: 200,
+          colorDark: '#000000', colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+        // QRCode.js renders synchronously in most cases; use rAF as safety
+        requestAnimationFrame(() => {
+          const canvas = div.querySelector('canvas');
+          resolve(canvas ? canvas.toDataURL('image/png') : null);
         });
       });
+    }));
+
+    // Layout into PDF
+    let idx = 0, page = 0;
+    for (const imgData of canvases) {
+      if (!imgData) { idx++; continue; }
+      const posInPage = idx % (cols * rows);
+      if (posInPage === 0 && idx > 0) { doc.addPage(); page++; }
+
+      const col = posInPage % cols;
+      const row = Math.floor(posInPage / cols);
+      const x = marginX + col * cellW + (cellW - qrSize) / 2;
+      const y = marginY + row * cellH;
+
+      doc.addImage(imgData, 'PNG', x, y, qrSize, qrSize);
+
+      // ID text below QR
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(60, 60, 60);
+      const txt = batchPreviewIds[idx];
+      doc.text(txt, x + qrSize / 2, y + qrSize + 4, { align: 'center' });
+
+      idx++;
+    }
+
+    // Header on each page
+    const pageCount = doc.getNumberOfPages();
+    for (let p = 1; p <= pageCount; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(168, 117, 46);
+      doc.text('TAIGU BATTERY TOOL', marginX, 12);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated ${new Date().toLocaleDateString()}  |  Page ${p} of ${pageCount}`, PW - marginX, 12, { align: 'right' });
+      doc.setDrawColor(220, 210, 195);
+      doc.line(marginX, 14.5, PW - marginX, 14.5);
+    }
+
+    doc.save(`TAIGU-Batch-QR-${new Date().toISOString().slice(0,10)}.pdf`);
+    msg('batch-msg', `PDF with ${batchPreviewIds.length} QR codes downloaded!`, 'ok');
+    renderEl.innerHTML = '';
+  } catch(e) {
+    msg('batch-msg', 'PDF generation failed: ' + e.message, 'error');
+  } finally {
+    setBtn(btn, false, '↓ &nbsp;Download PDF (all QR codes)');
+  }
+}
+
+async function regBatch() {
+  if (!batchPreviewIds.length) return;
+  const btn = document.getElementById('batch-reg-btn');
+  setBtn(btn, true, `<span class="spin"></span>&nbsp; Registering 0/${batchPreviewIds.length}…`);
+  let done = 0, failed = 0;
+  for (const id of batchPreviewIds) {
+    try {
+      await api('addBattery', { batteryId: id });
+      done++;
+    } catch(e) { failed++; }
+    btn.innerHTML = `<span class="spin"></span>&nbsp; Registering ${done}/${batchPreviewIds.length}…`;
+  }
+  setBtn(btn, false, '✓ &nbsp;Register All in System');
+  msg('batch-reg-msg', `Done: ${done} registered${failed ? `, ${failed} failed (may already exist)` : ''}`, done > 0 ? 'ok' : 'error');
+  S.healthLoaded = false; S.recordsLoaded = false;
+}
+
+// ─────────────────────────────────────────
+// SCANNER
+// ─────────────────────────────────────────
+async function openScanner() {
+  document.getElementById('scanner-modal').classList.remove('hidden');
+  document.getElementById('scan-msg').className = 'msg';
+  try {
+    S.scanner = new Html5Qrcode('qr-reader');
+    await S.scanner.start(
+      { facingMode: 'environment' },
+      { fps: 12, qrbox: { width: 240, height: 240 } },
+      (decoded) => {
+        document.getElementById('log-id').value = decoded;
+        msg('scan-msg', `Scanned: ${decoded}`, 'ok');
+        setTimeout(() => closeScanner(), 1000);
+      },
+      () => { /* scan errors are normal while searching */ }
+    );
+  } catch(e) {
+    msg('scan-msg', `Camera error: ${e.message || 'Could not access camera'}`, 'error');
+  }
+}
+
+async function closeScanner() {
+  if (S.scanner) {
+    try { await S.scanner.stop(); S.scanner.clear(); } catch(e) {}
+    S.scanner = null;
+  }
+  document.getElementById('qr-reader').innerHTML = '';
+  document.getElementById('scanner-modal').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────
+// LOG BATTERY
+// ─────────────────────────────────────────
+function setStatus(status) {
+  S.selectedStatus = status;
+  document.getElementById('st-charged').className    = 'status-tile';
+  document.getElementById('st-notcharged').className = 'status-tile';
+  document.getElementById('st-other').className      = 'status-tile';
+  const other = document.getElementById('other-sub');
+
+  if (status === 'Charged')     { document.getElementById('st-charged').className    = 'status-tile selected-charged'; other.classList.remove('visible'); }
+  else if (status === 'Not Charged') { document.getElementById('st-notcharged').className = 'status-tile selected-notcharged'; other.classList.remove('visible'); }
+  else { document.getElementById('st-other').className = 'status-tile selected-other'; other.classList.add('visible'); }
+}
+
+async function submitLog() {
+  const id    = document.getElementById('log-id').value.trim();
+  const notes = document.getElementById('log-notes').value.trim();
+  if (!id)               { msg('log-msg', 'Please enter a Battery ID', 'error'); return; }
+  if (!S.selectedStatus) { msg('log-msg', 'Please select a charge status', 'error'); return; }
+
+  const finalStatus = S.selectedStatus === 'Other'
+    ? document.getElementById('other-val').value
+    : S.selectedStatus;
+
+  const btn = document.getElementById('log-submit');
+  setBtn(btn, true, '<span class="spin"></span>&nbsp; Submitting…');
+  try {
+    await api('logBattery', { batteryId: id, status: finalStatus, notes });
+    msg('log-msg', `Battery "${id}" logged as "${finalStatus}"`, 'ok');
+    document.getElementById('log-id').value = '';
+    document.getElementById('log-notes').value = '';
+    ['st-charged','st-notcharged','st-other'].forEach(x => document.getElementById(x).className = 'status-tile');
+    document.getElementById('other-sub').classList.remove('visible');
+    S.selectedStatus = null; S.recordsLoaded = false; S.healthLoaded = false;
+  } catch(e) {
+    msg('log-msg', e.message, 'error');
+  } finally {
+    setBtn(btn, false, 'Submit Battery Log');
+  }
+}
+
+// ─────────────────────────────────────────
+// BATTERY HEALTH
+// ─────────────────────────────────────────
+async function loadHealth() {
+  document.getElementById('health-tbody').innerHTML =
+    '<tr class="loading-row"><td colspan="6"><span class="spin" style="color:var(--gold);"></span>&nbsp; Computing health data…</td></tr>';
+  try {
+    const [logsData, batsData] = await Promise.all([
+      api('getLogs'),
+      api('getBatteries'),
+    ]);
+
+    const logs = logsData.logs || [];
+    const batteries = batsData.batteries || [];
+
+    // Aggregate per battery
+    const map = {};
+    for (const b of batteries) {
+      map[b.id] = { id: b.id, cycles: 0, total: 0, lastStatus: '—', lastTs: null };
+    }
+    // Also include batteries that appear in logs but aren't registered
+    for (const l of logs) {
+      if (!map[l.batteryId]) map[l.batteryId] = { id: l.batteryId, cycles: 0, total: 0, lastStatus: '—', lastTs: null };
+    }
+    for (const l of logs) {
+      const r = map[l.batteryId];
+      if (!r) continue;
+      r.total++;
+      if (l.status === 'Charged') r.cycles++;
+      const ts = new Date(l.timestamp);
+      if (!r.lastTs || ts > r.lastTs) { r.lastTs = ts; r.lastStatus = l.status; }
+    }
+
+    const rows = Object.values(map);
+    const totalCycles = rows.reduce((a, r) => a + r.cycles, 0);
+    const healths = rows.map(r => Math.max(0, Math.round((1 - r.cycles / MAX_CYCLES) * 100)));
+    const avgH = rows.length ? Math.round(healths.reduce((a, b) => a + b, 0) / rows.length) : 0;
+    const attn = healths.filter(h => h < 50).length;
+
+    document.getElementById('h-total').textContent       = rows.length;
+    document.getElementById('h-avg-health').textContent  = avgH + '%';
+    document.getElementById('h-cycles').textContent      = totalCycles;
+    document.getElementById('h-attention').textContent   = attn;
+    document.getElementById('h-bat-count').textContent   = rows.length;
+
+    // Sort by health asc (worst first)
+    rows.sort((a, b) => {
+      const ha = Math.max(0, Math.round((1 - a.cycles / MAX_CYCLES) * 100));
+      const hb = Math.max(0, Math.round((1 - b.cycles / MAX_CYCLES) * 100));
+      return ha - hb;
     });
 
-    // =====================================================
-    // SETUP
-    // =====================================================
-    function saveScriptUrl() {
-      const url = document.getElementById('script-url-input').value.trim();
-      if (!url || !url.startsWith('https://script.google.com')) {
-        showMsg('setup-msg', 'Please enter a valid Google Apps Script URL', 'error');
-        return;
-      }
-      state.scriptUrl = url;
-      localStorage.setItem(CONFIG_KEY, url);
-      document.getElementById('setup-overlay').classList.add('hidden');
-      showMsg('login-msg', '✅ API URL saved successfully', 'success');
+    const tbody = document.getElementById('health-tbody');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-table"><div class="ei">📦</div><p>No batteries registered yet</p></div></td></tr>';
+      return;
     }
 
-    // =====================================================
-    // API HELPER
-    // =====================================================
-    async function api(action, payload = {}) {
-      if (!state.scriptUrl) {
-        document.getElementById('setup-overlay').classList.remove('hidden');
-        throw new Error('No API URL configured');
-      }
-
-      const body = { action, ...payload };
-      if (state.user) {
-        body.username = state.user.username;
-        body.password = state.user.password;
-      }
-
-      // Use text/plain to avoid CORS preflight on Apps Script
-      const res = await fetch(state.scriptUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) throw new Error(`Server error: HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || 'Unknown error from server');
-      return data;
-    }
-
-    // =====================================================
-    // AUTH
-    // =====================================================
-    async function handleLogin() {
-      const username = document.getElementById('login-username').value.trim();
-      const password = document.getElementById('login-password').value;
-      if (!username || !password) {
-        showMsg('login-msg', 'Please enter your username and password', 'error');
-        return;
-      }
-
-      const btn = document.getElementById('login-btn');
-      setLoading(btn, true, '<span class="spinner"></span> Signing in…');
-
-      try {
-        const data = await api('login', { username, password });
-        state.user = { username: data.username, role: data.role || 'user', password };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(state.user));
-        showApp();
-      } catch(err) {
-        showMsg('login-msg', err.message || 'Login failed. Check credentials.', 'error');
-      } finally {
-        setLoading(btn, false, 'Sign In');
-      }
-    }
-
-    function handleLogout() {
-      state.user         = null;
-      state.allLogs      = [];
-      state.filteredLogs = [];
-      state.recordsLoaded = false;
-      localStorage.removeItem(SESSION_KEY);
-      document.getElementById('login-screen').style.display = '';
-      document.getElementById('app-screen').classList.add('hidden');
-      document.getElementById('login-password').value = '';
-    }
-
-    function showApp() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app-screen').classList.remove('hidden');
-      document.getElementById('user-name-display').textContent = state.user.username;
-      document.getElementById('user-avatar').textContent = state.user.username.charAt(0).toUpperCase();
-    }
-
-    // =====================================================
-    // TAB NAVIGATION
-    // =====================================================
-    function switchTab(tab) {
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
-      });
-      document.querySelectorAll('.tab-content').forEach(el => {
-        el.classList.toggle('active', el.id === 'tab-' + tab);
-      });
-
-      if (tab === 'records' && !state.recordsLoaded) {
-        loadRecords();
-      }
-    }
-
-    // =====================================================
-    // QR GENERATOR
-    // =====================================================
-    function autoGenerateId() {
-      const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-      document.getElementById('qr-battery-id').value = `BAT-${date}-${rand}`;
-      onBatteryIdInput();
-    }
-
-    function onBatteryIdInput() {
-      state.qrGenerated = false;
-      state.currentQrId = null;
-      document.getElementById('download-qr-btn').disabled = true;
-      document.getElementById('register-battery-btn').disabled = true;
-    }
-
-    function generateQR() {
-      const id = document.getElementById('qr-battery-id').value.trim();
-      if (!id) { showMsg('qr-msg', 'Please enter a Battery ID first', 'error'); return; }
-
-      const container = document.getElementById('qr-code-container');
-      container.innerHTML = '';
-
-      new QRCode(container, {
-        text: id,
-        width: 220, height: 220,
-        colorDark: '#000000', colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H,
-      });
-
-      document.getElementById('qr-placeholder').style.display = 'none';
-      container.style.display = 'block';
-      document.getElementById('qr-display').classList.remove('empty');
-
-      const idDisplay = document.getElementById('qr-id-display');
-      idDisplay.textContent = id;
-      idDisplay.style.display = 'block';
-
-      state.currentQrId = id;
-      state.qrGenerated = true;
-      document.getElementById('download-qr-btn').disabled = false;
-      document.getElementById('register-battery-btn').disabled = false;
-
-      showMsg('qr-msg', `✅ QR code generated for ${id}`, 'success');
-    }
-
-    function downloadQR() {
-      if (!state.qrGenerated) return;
-      const container = document.getElementById('qr-code-container');
-      const el = container.querySelector('canvas') || container.querySelector('img');
-      if (!el) return;
-      const link = document.createElement('a');
-      link.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
-      link.download = `QR-${state.currentQrId}.png`;
-      link.click();
-    }
-
-    async function registerBattery() {
-      if (!state.currentQrId) return;
-      const btn = document.getElementById('register-battery-btn');
-      setLoading(btn, true, '<span class="spinner"></span> Registering…');
-      try {
-        await api('addBattery', { batteryId: state.currentQrId });
-        showMsg('register-msg', `✅ Battery "${state.currentQrId}" registered in Google Sheets!`, 'success');
-        btn.disabled = true; // prevent double-register
-      } catch(err) {
-        showMsg('register-msg', err.message || 'Registration failed', 'error');
-        setLoading(btn, false, '✅ Register Battery in System');
-      } finally {
-        btn.innerHTML = '✅ Register Battery in System';
-      }
-    }
-
-    // =====================================================
-    // LOG BATTERY
-    // =====================================================
-    let batteryPickerOpen = false;
-
-    async function toggleBatteryPicker() {
-      const picker = document.getElementById('battery-picker');
-      if (batteryPickerOpen) {
-        picker.style.display = 'none';
-        batteryPickerOpen = false;
-        return;
-      }
-      picker.style.display = 'block';
-      batteryPickerOpen = true;
-
-      try {
-        const data = await api('getBatteries');
-        const select = document.getElementById('battery-select');
-        if (!data.batteries || data.batteries.length === 0) {
-          select.innerHTML = '<option value="">— No batteries registered yet —</option>';
-          return;
-        }
-        select.innerHTML = '<option value="">— Select a battery —</option>' +
-          data.batteries.map(b => `<option value="${escHtml(b.id)}">${escHtml(b.id)}</option>`).join('');
-      } catch(err) {
-        showMsg('log-msg', 'Could not load battery list: ' + err.message, 'error');
-      }
-    }
-
-    function pickBattery(val) {
-      if (val) {
-        document.getElementById('log-battery-id').value = val;
-        document.getElementById('battery-picker').style.display = 'none';
-        batteryPickerOpen = false;
-      }
-    }
-
-    function selectStatus(status) {
-      state.selectedStatus = status;
-      document.getElementById('status-btn-charged').className     = 'status-btn';
-      document.getElementById('status-btn-not-charged').className = 'status-btn';
-      document.getElementById('status-btn-other').className       = 'status-btn';
-      const otherOpts = document.getElementById('other-options');
-
-      if (status === 'Charged') {
-        document.getElementById('status-btn-charged').className   = 'status-btn sel-charged';
-        otherOpts.classList.remove('visible');
-      } else if (status === 'Not Charged') {
-        document.getElementById('status-btn-not-charged').className = 'status-btn sel-not-charged';
-        otherOpts.classList.remove('visible');
-      } else {
-        document.getElementById('status-btn-other').className     = 'status-btn sel-other';
-        otherOpts.classList.add('visible');
-      }
-    }
-
-    async function submitLog() {
-      const batteryId = document.getElementById('log-battery-id').value.trim();
-      const notes     = document.getElementById('log-notes').value.trim();
-
-      if (!batteryId) { showMsg('log-msg', 'Please enter a Battery ID', 'error'); return; }
-      if (!state.selectedStatus) { showMsg('log-msg', 'Please select a charge status', 'error'); return; }
-
-      const finalStatus = state.selectedStatus === 'Other'
-        ? document.getElementById('other-status-select').value
-        : state.selectedStatus;
-
-      const btn = document.getElementById('log-submit-btn');
-      setLoading(btn, true, '<span class="spinner"></span> Submitting…');
-
-      try {
-        await api('logBattery', { batteryId, status: finalStatus, notes });
-        showMsg('log-msg', `✅ Battery "${batteryId}" logged as "${finalStatus}"`, 'success');
-
-        // Reset form
-        document.getElementById('log-battery-id').value = '';
-        document.getElementById('log-notes').value = '';
-        selectStatus(null);
-        ['status-btn-charged','status-btn-not-charged','status-btn-other']
-          .forEach(id => document.getElementById(id).className = 'status-btn');
-        document.getElementById('other-options').classList.remove('visible');
-        state.selectedStatus = null;
-        state.recordsLoaded = false; // invalidate cache
-      } catch(err) {
-        showMsg('log-msg', err.message || 'Submission failed', 'error');
-      } finally {
-        setLoading(btn, false, '🔋 Submit Log');
-      }
-    }
-
-    // =====================================================
-    // RECORDS
-    // =====================================================
-    async function loadRecords() {
-      const loading = document.getElementById('records-loading');
-      loading.style.display = 'flex';
-
-      try {
-        const data = await api('getLogs');
-        state.allLogs      = data.logs || [];
-        state.filteredLogs = [...state.allLogs];
-        state.recordsLoaded = true;
-        applyFilters();
-      } catch(err) {
-        renderTableError(err.message || 'Failed to load records');
-      } finally {
-        loading.style.display = 'none';
-      }
-    }
-
-    function applyFilters() {
-      const idFilter     = document.getElementById('filter-battery-id').value.trim().toLowerCase();
-      const statusFilter = document.getElementById('filter-status').value;
-      const dateFrom     = document.getElementById('filter-date-from').value;
-      const dateTo       = document.getElementById('filter-date-to').value;
-      const userFilter   = document.getElementById('filter-user').value.trim().toLowerCase();
-
-      state.filteredLogs = state.allLogs.filter(log => {
-        const dateStr = String(log.timestamp).slice(0, 10);
-        if (idFilter     && !String(log.batteryId).toLowerCase().includes(idFilter))     return false;
-        if (statusFilter && log.status !== statusFilter)                                  return false;
-        if (dateFrom     && dateStr < dateFrom)                                           return false;
-        if (dateTo       && dateStr > dateTo)                                             return false;
-        if (userFilter   && !String(log.loggedBy).toLowerCase().includes(userFilter))    return false;
-        return true;
-      });
-
-      renderTable();
-    }
-
-    function clearFilters() {
-      ['filter-battery-id','filter-user'].forEach(id => document.getElementById(id).value = '');
-      ['filter-status'].forEach(id => document.getElementById(id).value = '');
-      ['filter-date-from','filter-date-to'].forEach(id => document.getElementById(id).value = '');
-      state.filteredLogs = [...state.allLogs];
-      renderTable();
-    }
-
-    function renderTable() {
-      const tbody = document.getElementById('records-tbody');
-      document.getElementById('records-count-num').textContent = state.filteredLogs.length;
-
-      if (state.filteredLogs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5">
-          <div class="empty-state">
-            <div class="empty-icon">🔍</div>
-            <p>No records match your filters</p>
+    tbody.innerHTML = rows.map((r, i) => {
+      const h = Math.max(0, Math.round((1 - r.cycles / MAX_CYCLES) * 100));
+      const color = h > 70 ? '#2e7d52' : h > 40 ? '#a8752e' : '#c0392b';
+      const ts = r.lastTs ? r.lastTs.toLocaleDateString('en-GB') + ' ' + r.lastTs.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
+      return `<tr>
+        <td class="mono-cell">${esc(r.id)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;min-width:120px;">
+            <span style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:${color};">${h}%</span>
+            <div style="flex:1;">
+              <div class="health-bar-bg">
+                <div class="health-bar-fill" style="width:${h}%;background:${color};"></div>
+              </div>
+            </div>
           </div>
-        </td></tr>`;
-        return;
-      }
+        </td>
+        <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;">${r.cycles}</td>
+        <td style="color:var(--ink-3);">${r.total}</td>
+        <td>${statusChip(r.lastStatus)}</td>
+        <td class="ts">${esc(ts)}</td>
+      </tr>`;
+    }).join('');
 
-      tbody.innerHTML = state.filteredLogs.map(log => {
-        const ts = new Date(log.timestamp);
-        const formatted = isNaN(ts) ? log.timestamp :
-          ts.toLocaleDateString('en-GB') + ' ' + ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    S.healthLoaded = true;
+  } catch(e) {
+    document.getElementById('health-tbody').innerHTML =
+      `<tr><td colspan="6"><div class="empty-table"><div class="ei">⚠️</div><p>${esc(e.message)}</p></div></td></tr>`;
+  }
+}
 
-        return `<tr>
-          <td style="color:var(--text-2);font-size:13px;white-space:nowrap;">${escHtml(formatted)}</td>
-          <td class="mono">${escHtml(log.batteryId || '—')}</td>
-          <td>${statusBadge(log.status)}</td>
-          <td style="font-size:13px;">${escHtml(log.loggedBy || '—')}</td>
-          <td style="color:var(--text-2);font-size:13px;">${escHtml(log.notes || '—')}</td>
-        </tr>`;
-      }).join('');
-    }
+// ─────────────────────────────────────────
+// RECORDS
+// ─────────────────────────────────────────
+async function loadRecords() {
+  const loading = document.getElementById('rec-loading');
+  loading.style.display = 'flex';
+  try {
+    const d = await api('getLogs');
+    S.allLogs = d.logs || [];
+    S.filteredLogs = [...S.allLogs];
+    S.recordsLoaded = true;
+    filterRecs();
+  } catch(e) {
+    document.getElementById('rec-tbody').innerHTML =
+      `<tr><td colspan="6"><div class="empty-table"><div class="ei">⚠️</div><p>${esc(e.message)}</p></div></td></tr>`;
+  } finally {
+    loading.style.display = 'none';
+  }
+}
 
-    function renderTableError(msg) {
-      document.getElementById('records-tbody').innerHTML = `<tr><td colspan="5">
-        <div class="empty-state">
-          <div class="empty-icon">⚠️</div>
-          <p>${escHtml(msg)}</p>
-        </div>
-      </td></tr>`;
-    }
+function filterRecs() {
+  const id   = document.getElementById('f-id').value.trim().toLowerCase();
+  const st   = document.getElementById('f-status').value;
+  const from = document.getElementById('f-from').value;
+  const to   = document.getElementById('f-to').value;
+  const usr  = document.getElementById('f-user').value.trim().toLowerCase();
 
-    function statusBadge(s) {
-      if (s === 'Charged')     return `<span class="status-badge badge-charged">✅ Charged</span>`;
-      if (s === 'Not Charged') return `<span class="status-badge badge-not-charged">❌ Not Charged</span>`;
-      if (s === 'Faulty')      return `<span class="status-badge badge-other">⚠️ Faulty</span>`;
-      if (s && s.endsWith('%')) return `<span class="status-badge badge-other">🔋 ${escHtml(s)}</span>`;
-      return `<span class="status-badge badge-other">${escHtml(s || '—')}</span>`;
-    }
+  S.filteredLogs = S.allLogs.filter(l => {
+    const ds = String(l.timestamp).slice(0, 10);
+    if (id   && !String(l.batteryId).toLowerCase().includes(id)) return false;
+    if (st   && l.status !== st) return false;
+    if (from && ds < from) return false;
+    if (to   && ds > to)   return false;
+    if (usr  && !String(l.loggedBy).toLowerCase().includes(usr)) return false;
+    return true;
+  });
+  renderRecs();
+}
 
-    function exportCSV() {
-      if (state.filteredLogs.length === 0) { alert('No records to export.'); return; }
-      const headers = ['Timestamp', 'Battery ID', 'Status', 'Logged By', 'Notes'];
-      const rows = state.filteredLogs.map(l =>
-        [l.timestamp, l.batteryId, l.status, l.loggedBy, l.notes || '']
-      );
-      const csv = [headers, ...rows]
-        .map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(','))
-        .join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url  = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `voltlog-export-${new Date().toISOString().slice(0,10)}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-    }
+function clearFilters() {
+  ['f-id','f-user'].forEach(x => document.getElementById(x).value = '');
+  ['f-status'].forEach(x => document.getElementById(x).value = '');
+  ['f-from','f-to'].forEach(x => document.getElementById(x).value = '');
+  S.filteredLogs = [...S.allLogs];
+  renderRecs();
+}
 
-    // =====================================================
-    // UTILITIES
-    // =====================================================
-    function showMsg(id, text, type) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.textContent = text;
-      el.className = `msg ${type} show`;
-      clearTimeout(el._t);
-      el._t = setTimeout(() => el.classList.remove('show'), 5000);
-    }
+function renderRecs() {
+  document.getElementById('rec-count').textContent = S.filteredLogs.length;
+  const tbody = document.getElementById('rec-tbody');
+  if (!S.filteredLogs.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-table"><div class="ei">🔍</div><p>No records match your filters</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = S.filteredLogs.map((l, i) => {
+    const ts = new Date(l.timestamp);
+    const fmt = isNaN(ts) ? l.timestamp
+      : ts.toLocaleDateString('en-GB') + ' ' + ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `<tr id="row-${i}">
+      <td class="ts">${esc(fmt)}</td>
+      <td class="mono-cell">${esc(l.batteryId || '—')}</td>
+      <td>${statusChip(l.status)}</td>
+      <td style="font-size:0.85rem;">${esc(l.loggedBy || '—')}</td>
+      <td class="notes-cell" title="${esc(l.notes || '')}">${esc(l.notes || '—')}</td>
+      <td id="del-cell-${i}">
+        <button class="btn btn-danger btn-sm" onclick="confirmDel(${i})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
 
-    function setLoading(btn, loading, html) {
-      btn.disabled = loading;
-      btn.innerHTML = html;
-    }
+function confirmDel(i) {
+  const cell = document.getElementById(`del-cell-${i}`);
+  const log  = S.filteredLogs[i];
+  cell.innerHTML = `<div class="del-confirm">
+    <span style="font-size:0.78rem;color:var(--ink-3);">Sure?</span>
+    <button class="btn btn-danger btn-sm" onclick="execDel(${i})">Yes</button>
+    <button class="btn btn-outline btn-sm" onclick="renderRecs()">No</button>
+  </div>`;
+}
 
-    function escHtml(s) {
-      return String(s)
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;');
-    }
-  </script>
+async function execDel(i) {
+  const log  = S.filteredLogs[i];
+  const cell = document.getElementById(`del-cell-${i}`);
+  cell.innerHTML = '<span class="spin" style="color:var(--red);"></span>';
+  try {
+    await api('deleteLog', { timestamp: log.timestamp, batteryId: log.batteryId });
+    // Remove from both arrays
+    S.allLogs      = S.allLogs.filter(l => !(l.timestamp === log.timestamp && l.batteryId === log.batteryId));
+    S.filteredLogs = S.filteredLogs.filter(l => !(l.timestamp === log.timestamp && l.batteryId === log.batteryId));
+    renderRecs();
+    S.healthLoaded = false;
+  } catch(e) {
+    cell.innerHTML = `<span style="color:var(--red);font-size:0.78rem;">${esc(e.message)}</span>`;
+  }
+}
+
+function exportCSV() {
+  if (!S.filteredLogs.length) { alert('No records to export.'); return; }
+  const headers = ['Timestamp', 'Battery ID', 'Status', 'Logged By', 'Notes'];
+  const rows = S.filteredLogs.map(l => [l.timestamp, l.batteryId, l.status, l.loggedBy, l.notes || '']);
+  const csv = [headers, ...rows]
+    .map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `taigu-records-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(url);
+}
+
+// ─────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────
+function statusChip(s) {
+  if (s === 'Charged')     return `<span class="chip chip-green">✓ Charged</span>`;
+  if (s === 'Not Charged') return `<span class="chip chip-red">✗ Not Charged</span>`;
+  if (s === 'Faulty')      return `<span class="chip chip-red">⚠ Faulty</span>`;
+  if (s && s.endsWith('%')) return `<span class="chip chip-gold">⬡ ${esc(s)}</span>`;
+  return `<span class="chip chip-gold">${esc(s || '—')}</span>`;
+}
+
+function msg(id, text, type) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text; el.className = `msg ${type} show`;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 5500);
+}
+
+function setBtn(btn, disabled, html) {
+  btn.disabled = disabled; btn.innerHTML = html;
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
 </body>
 </html>
