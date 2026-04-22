@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Taigu Battery Tool</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -12,27 +12,27 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --cream:     #f7f4ee;
+      --cream:     #f5f5f5;
       --white:     #ffffff;
-      --ink:       #0f0e0b;
-      --ink-2:     #4a4740;
-      --ink-3:     #9a9590;
-      --ink-4:     #c8c4be;
-      --gold:      #a8752e;
-      --gold-mid:  #c49040;
-      --gold-pale: #f5ead6;
-      --gold-line: rgba(168,117,46,0.2);
-      --border:    #e6e1d8;
-      --border-2:  #d4cec5;
+      --ink:       #111111;
+      --ink-2:     #444444;
+      --ink-3:     #888888;
+      --ink-4:     #bbbbbb;
+      --gold:      #111111;
+      --gold-mid:  #444444;
+      --gold-pale: #f0f0f0;
+      --gold-line: rgba(0,0,0,0.12);
+      --border:    #e0e0e0;
+      --border-2:  #cccccc;
       --surface:   #ffffff;
-      --surface-2: #faf8f4;
+      --surface-2: #f9f9f9;
       --red:       #c0392b;
       --red-pale:  #fdf1f0;
       --green:     #2e7d52;
       --green-pale:#eef6f1;
-      --shadow-sm: 0 1px 3px rgba(15,14,11,0.06), 0 1px 2px rgba(15,14,11,0.04);
-      --shadow-md: 0 4px 12px rgba(15,14,11,0.08), 0 2px 4px rgba(15,14,11,0.04);
-      --shadow-lg: 0 16px 48px rgba(15,14,11,0.12), 0 4px 12px rgba(15,14,11,0.06);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 16px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
       --r:         6px;
       --r-lg:      12px;
       --r-xl:      18px;
@@ -40,7 +40,7 @@
 
     html { font-size: 15px; -webkit-font-smoothing: antialiased; }
     body {
-      font-family: 'DM Sans', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--cream);
       color: var(--ink);
       min-height: 100vh;
@@ -50,16 +50,16 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 99px; }
 
-    .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+    .serif { font-family: 'Inter', sans-serif; }
     .mono  { font-family: 'JetBrains Mono', monospace; }
-    .gold  { color: var(--gold); }
+    .gold  { color: var(--ink); }
 
     /* ─────────────────────────────────────────
        TYPOGRAPHY
     ───────────────────────────────────────── */
-    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 400; letter-spacing: 0.03em; }
-    h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
-    h3 { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.87rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+    h1 { font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: -0.01em; }
+    h2 { font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: -0.01em; }
+    h3 { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 0.87rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
 
     /* ─────────────────────────────────────────
        FORMS
@@ -75,7 +75,7 @@
       width: 100%; background: var(--white);
       border: 1px solid var(--border);
       border-radius: var(--r); color: var(--ink);
-      font-family: 'DM Sans', sans-serif; font-size: 0.95rem;
+      font-family: 'Inter', sans-serif; font-size: 0.95rem;
       padding: 10px 14px; outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
       appearance: none;
@@ -87,7 +87,7 @@
     }
     .field select option { background: #fff; }
     .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: var(--gold); box-shadow: 0 0 0 3px rgba(168,117,46,0.1);
+      border-color: var(--ink); box-shadow: 0 0 0 3px rgba(0,0,0,0.08);
     }
     .field input::placeholder, .field textarea::placeholder { color: var(--ink-4); }
     .field textarea { resize: vertical; }
@@ -102,8 +102,8 @@
     ───────────────────────────────────────── */
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-      font-family: 'DM Sans', sans-serif; font-weight: 500;
-      font-size: 0.87rem; letter-spacing: 0.03em;
+      font-family: 'Inter', sans-serif; font-weight: 500;
+      font-size: 0.87rem; letter-spacing: 0.01em;
       padding: 10px 20px; border-radius: var(--r);
       border: none; cursor: pointer;
       transition: all 0.2s; white-space: nowrap;
@@ -112,23 +112,23 @@
     .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
 
     .btn-gold {
-      background: var(--gold); color: #fff;
-      box-shadow: 0 1px 3px rgba(168,117,46,0.25);
+      background: var(--ink); color: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .btn-gold:hover:not(:disabled) {
-      background: #96661e; box-shadow: 0 4px 12px rgba(168,117,46,0.35);
+      background: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
     .btn-outline {
       background: transparent; color: var(--ink-2);
       border: 1px solid var(--border-2);
     }
     .btn-outline:hover:not(:disabled) {
-      border-color: var(--gold); color: var(--gold); background: var(--gold-pale);
+      border-color: var(--ink); color: var(--ink); background: var(--gold-pale);
     }
     .btn-ghost {
       background: transparent; color: var(--ink-3); padding: 10px 12px;
     }
-    .btn-ghost:hover:not(:disabled) { color: var(--gold); background: var(--gold-pale); }
+    .btn-ghost:hover:not(:disabled) { color: var(--ink); background: var(--gold-pale); }
     .btn-danger {
       background: transparent; color: var(--red);
       border: 1px solid rgba(192,57,43,0.2);
@@ -149,7 +149,7 @@
     .msg.show   { display: block; animation: fadeIn 0.2s ease; }
     .msg.error  { background: var(--red-pale); color: var(--red); border-left: 3px solid var(--red); }
     .msg.ok     { background: var(--green-pale); color: var(--green); border-left: 3px solid var(--green); }
-    .msg.info   { background: var(--gold-pale); color: var(--gold); border-left: 3px solid var(--gold); }
+    .msg.info   { background: #f0f0f0; color: var(--ink-2); border-left: 3px solid var(--ink-3); }
 
     /* ─────────────────────────────────────────
        SPINNER
@@ -188,14 +188,14 @@
     ───────────────────────────────────────── */
     #login-page {
       min-height: 100vh; display: flex;
-      background: linear-gradient(145deg, #0f0e0b 0%, #1e1c16 50%, #0f0e0b 100%);
+      background: #111;
       position: relative; overflow: hidden;
     }
     #login-page::before {
       content: ''; position: absolute; inset: 0;
       background:
-        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(168,117,46,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(168,117,46,0.06) 0%, transparent 60%);
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(255,255,255,0.03) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(255,255,255,0.02) 0%, transparent 60%);
     }
     .login-left {
       flex: 1; display: flex; flex-direction: column;
@@ -209,32 +209,31 @@
     }
     .login-brand .logo-wrap img { width: 56px; height: 56px; object-fit: contain; }
     .login-brand .logo-fallback {
-      width: 56px; height: 56px; background: var(--gold);
+      width: 56px; height: 56px; background: #fff;
       border-radius: 12px; display: flex; align-items: center; justify-content: center;
-      color: #fff; font-family: 'Cormorant Garamond', serif;
-      font-size: 28px; font-weight: 300;
+      color: #111; font-family: 'Inter', sans-serif;
+      font-size: 24px; font-weight: 600;
     }
     .login-brand h1 {
-      font-size: 2.8rem; color: #f2ede4; letter-spacing: 0.08em;
-      text-transform: uppercase;
+      font-size: 2.6rem; color: #fff; letter-spacing: -0.01em;
     }
-    .login-brand p { color: rgba(242,237,228,0.45); font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px; }
+    .login-brand p { color: rgba(255,255,255,0.4); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 4px; }
     .login-tagline {
-      font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 300;
-      color: rgba(242,237,228,0.7); line-height: 1.3; max-width: 360px;
+      font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 300;
+      color: rgba(255,255,255,0.55); line-height: 1.4; max-width: 360px;
     }
-    .login-tagline em { color: var(--gold-mid); font-style: italic; }
+    .login-tagline em { color: rgba(255,255,255,0.9); font-style: normal; font-weight: 500; }
 
     .login-right {
-      width: 480px; background: var(--cream); display: flex;
+      width: 480px; background: var(--white); display: flex;
       flex-direction: column; justify-content: center; padding: 60px 56px;
       position: relative; z-index: 1;
     }
     .login-right::before {
       content: ''; position: absolute; left: 0; top: 20%; bottom: 20%;
-      width: 1px; background: linear-gradient(to bottom, transparent, var(--gold-line), transparent);
+      width: 1px; background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.1), transparent);
     }
-    .login-right h2 { font-size: 1.9rem; font-weight: 400; margin-bottom: 6px; }
+    .login-right h2 { font-size: 1.6rem; font-weight: 600; margin-bottom: 6px; }
     .login-right .sub { color: var(--ink-3); font-size: 0.88rem; margin-bottom: 34px; }
     .login-divider {
       height: 1px; background: var(--border); margin: 24px 0;
@@ -259,17 +258,17 @@
     }
     .brand-logo { width: 34px; height: 34px; object-fit: contain; }
     .brand-logo-fallback {
-      width: 34px; height: 34px; background: var(--gold);
+      width: 34px; height: 34px; background: var(--ink);
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
-      color: #fff; font-family: 'Cormorant Garamond', serif; font-size: 16px;
+      color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600;
     }
     .brand-text { display: flex; flex-direction: column; line-height: 1; }
     .brand-name {
-      font-family: 'Cormorant Garamond', serif; font-size: 1.25rem;
-      font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      font-family: 'Inter', sans-serif; font-size: 1.05rem;
+      font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
       color: var(--ink);
     }
-    .brand-sub { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-3); margin-top: 2px; }
+    .brand-sub { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-3); margin-top: 2px; }
 
     .app-bar-right { display: flex; align-items: center; gap: 12px; }
     .user-pill {
@@ -278,10 +277,10 @@
       border-radius: 99px; padding: 5px 14px 5px 6px;
     }
     .user-avatar {
-      width: 26px; height: 26px; border-radius: 50%; background: var(--gold);
+      width: 26px; height: 26px; border-radius: 50%; background: var(--ink);
       display: flex; align-items: center; justify-content: center;
-      color: #fff; font-size: 0.72rem; font-weight: 500;
-      font-family: 'Cormorant Garamond', serif; letter-spacing: 0.05em;
+      color: #fff; font-size: 0.72rem; font-weight: 600;
+      font-family: 'Inter', sans-serif;
     }
     .user-name { font-size: 0.83rem; font-weight: 500; color: var(--ink-2); }
 
@@ -293,14 +292,14 @@
       padding: 0 32px; display: flex; gap: 2px; overflow-x: auto;
     }
     .nav-tab {
-      font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 0.87rem;
+      font-family: 'Inter', sans-serif; font-weight: 400; font-size: 0.87rem;
       color: var(--ink-3); background: none; border: none;
       border-bottom: 2px solid transparent; padding: 14px 18px;
       cursor: pointer; transition: all 0.2s; white-space: nowrap;
       display: flex; align-items: center; gap: 7px;
     }
     .nav-tab:hover { color: var(--ink); }
-    .nav-tab.on { color: var(--gold); border-bottom-color: var(--gold); font-weight: 500; }
+    .nav-tab.on { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
     .nav-tab .tab-icon { font-size: 1rem; }
 
     /* ─────────────────────────────────────────
@@ -311,9 +310,9 @@
     .tab-pane.on { display: block; }
 
     .page-title { margin-bottom: 30px; }
-    .page-title h2 { font-size: 2rem; font-weight: 400; color: var(--ink); }
+    .page-title h2 { font-size: 1.6rem; font-weight: 600; color: var(--ink); }
     .page-title p { color: var(--ink-3); font-size: 0.88rem; margin-top: 5px; }
-    .gold-rule { height: 2px; width: 40px; background: var(--gold); border-radius: 1px; margin-top: 10px; }
+    .gold-rule { height: 2px; width: 32px; background: var(--ink); border-radius: 1px; margin-top: 10px; }
 
     /* ─────────────────────────────────────────
        CARDS
@@ -336,7 +335,7 @@
     }
     .chip-green  { background: var(--green-pale); color: var(--green); }
     .chip-red    { background: var(--red-pale);   color: var(--red); }
-    .chip-gold   { background: var(--gold-pale);  color: var(--gold); }
+    .chip-gold   { background: #efefef; color: var(--ink-2); }
 
     /* ─────────────────────────────────────────
        SUB-TABS (within QR tab)
@@ -348,8 +347,8 @@
       background: transparent; color: var(--ink-3); cursor: pointer;
       transition: all 0.2s;
     }
-    .sub-tab.on { background: var(--gold); color: #fff; border-color: var(--gold); }
-    .sub-tab:not(.on):hover { border-color: var(--gold-mid); color: var(--gold); background: var(--gold-pale); }
+    .sub-tab.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .sub-tab:not(.on):hover { border-color: var(--ink-2); color: var(--ink); background: var(--gold-pale); }
     .sub-pane { display: none; }
     .sub-pane.on { display: block; }
 
@@ -399,7 +398,7 @@
       padding: 20px 10px; text-align: center; cursor: pointer;
       transition: all 0.2s; background: var(--white);
     }
-    .status-tile:hover { border-color: var(--gold-mid); background: var(--gold-pale); }
+    .status-tile:hover { border-color: var(--ink-3); background: var(--surface-2); }
     .status-tile .st-icon { font-size: 26px; margin-bottom: 8px; }
     .status-tile .st-label {
       font-size: 0.78rem; font-weight: 500; letter-spacing: 0.04em;
@@ -409,8 +408,8 @@
     .status-tile.selected-charged    .st-label { color: var(--green); }
     .status-tile.selected-notcharged { border-color: var(--red);   background: var(--red-pale); }
     .status-tile.selected-notcharged .st-label { color: var(--red); }
-    .status-tile.selected-other      { border-color: var(--gold);  background: var(--gold-pale); }
-    .status-tile.selected-other      .st-label { color: var(--gold); }
+    .status-tile.selected-other      { border-color: var(--ink);   background: #f0f0f0; }
+    .status-tile.selected-other      .st-label { color: var(--ink); }
     .other-sub {
       background: var(--surface-2); border: 1px solid var(--border);
       border-radius: var(--r); padding: 16px; display: none; margin-top: 12px;
@@ -438,10 +437,10 @@
     }
     .stat-card .stat-label { font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
     .stat-card .stat-num {
-      font-family: 'Cormorant Garamond', serif; font-size: 2.4rem;
-      font-weight: 400; color: var(--ink); line-height: 1.1; margin: 6px 0 2px;
+      font-family: 'Inter', sans-serif; font-size: 2rem;
+      font-weight: 600; color: var(--ink); line-height: 1.1; margin: 6px 0 2px;
     }
-    .stat-card .stat-num.gold { color: var(--gold); }
+    .stat-card .stat-num.gold { color: var(--ink); }
     .stat-card .stat-sub { font-size: 0.77rem; color: var(--ink-3); }
 
     .health-bar-wrap { margin-top: 4px; }
@@ -468,7 +467,7 @@
       padding: 16px 22px; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center;
     }
-    .rec-count { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--ink-2); }
+    .rec-count { font-size: 0.88rem; color: var(--ink-2); }
     .rec-count strong { color: var(--ink); }
     .table-scroll { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; }
@@ -482,9 +481,12 @@
     tbody tr:last-child { border-bottom: none; }
     tbody tr:hover { background: var(--surface-2); }
     tbody td { padding: 13px 18px; font-size: 0.88rem; vertical-align: middle; }
-    td.mono-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--gold); }
+    td.mono-cell { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--ink-2); }
     td.ts { color: var(--ink-3); font-size: 0.82rem; white-space: nowrap; }
     td.notes-cell { color: var(--ink-3); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rec-count { font-size: 0.88rem; color: var(--ink-2); }
+    .rec-count strong { color: var(--ink); font-weight: 600; }
+
     .empty-table { text-align: center; padding: 60px 24px; }
     .empty-table .ei { font-size: 40px; opacity: 0.25; margin-bottom: 10px; }
     .empty-table p { color: var(--ink-3); font-size: 0.88rem; }
@@ -499,6 +501,11 @@
     .loading-row td { padding: 24px; text-align: center; color: var(--ink-3); font-size: 0.88rem; }
 
     /* ─────────────────────────────────────────
+       TWO-COLUMN GRID (collapses on mobile)
+    ───────────────────────────────────────── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+    /* ─────────────────────────────────────────
        RESPONSIVE
     ───────────────────────────────────────── */
     @media (max-width: 900px) {
@@ -506,22 +513,36 @@
     }
     @media (max-width: 700px) {
       #login-page { flex-direction: column; }
-      .login-left { padding: 40px 30px 20px; }
-      .login-right { width: 100%; padding: 30px; }
+      .login-left { padding: 32px 24px 16px; }
+      .login-brand { margin-bottom: 20px; }
+      .login-tagline { font-size: 1.4rem; }
+      .login-right { width: 100%; padding: 28px 24px 36px; }
       .login-right::before { display: none; }
+      /* All two-column grids collapse to single column */
+      .two-col { grid-template-columns: 1fr; }
       .qr-layout { grid-template-columns: 1fr; }
       .status-grid { gap: 8px; }
       .status-tile { padding: 14px 8px; }
-      .app-bar { padding: 0 16px; }
-      .app-nav { padding: 0 16px; }
-      .app-main { padding: 24px 16px; }
-      .health-stats { grid-template-columns: repeat(2, 1fr); }
-      .filter-strip { gap: 10px; }
+      .app-bar { padding: 0 14px; height: 54px; }
+      .app-bar-right { gap: 8px; }
+      .user-name { display: none; }
+      .app-nav { padding: 0 14px; }
+      .nav-tab { padding: 12px 12px; font-size: 0.82rem; gap: 5px; }
+      .app-main { padding: 20px 14px; }
+      .health-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-card { padding: 16px 14px; }
+      .stat-card .stat-num { font-size: 1.6rem; }
+      .filter-strip { padding: 14px 16px; gap: 10px; }
       .filter-strip .field { min-width: 100%; }
+      .filter-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+      .card { padding: 20px; }
+      .modal { padding: 28px 20px; }
     }
-    @media (max-width: 480px) {
+    @media (max-width: 420px) {
+      .nav-tab .tab-icon { display: none; }
+      .login-left { padding: 24px 20px 12px; }
+      .login-right { padding: 24px 20px 30px; }
       .health-stats { grid-template-columns: 1fr 1fr; }
-      .login-tagline { font-size: 1.8rem; }
     }
   </style>
 </head>
@@ -546,7 +567,7 @@
   </div>
 
   <div class="login-right">
-    <h2 class="serif">Sign in</h2>
+    <h2>Sign in</h2>
     <p class="sub">Access your battery management dashboard</p>
 
     <div class="field">
@@ -667,7 +688,7 @@
 
       <!-- ── BATCH ── -->
       <div id="subqr-batch" class="sub-pane">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div class="two-col">
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div class="card">
               <p class="card-title">Batch Configuration</p>
@@ -725,7 +746,7 @@
         <div class="gold-rule"></div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div class="two-col">
         <div style="display:flex;flex-direction:column;gap:16px;">
           <div class="card">
             <p class="card-title">Battery Identification</p>
@@ -900,7 +921,7 @@
         <div class="table-card-header">
           <div class="rec-count"><strong id="rec-count">0</strong> records</div>
           <div id="rec-loading" style="display:none;font-size:0.82rem;color:var(--ink-3);">
-            <span class="spin" style="color:var(--gold);"></span>&nbsp;Loading…
+            <span class="spin" style="color:var(--ink-3);"></span>&nbsp;Loading…
           </div>
         </div>
         <div class="table-scroll">
@@ -955,7 +976,7 @@
 // ─────────────────────────────────────────
 const API = 'https://script.google.com/macros/s/AKfycbxwV5X3BQg510f4k70FZp8mRthqMUtAZ7VAuJyaDt0SbtrgJjfsewOofFx3culxzs0Bug/exec';
 const SESSION_KEY = 'taigu_session';
-const MAX_CYCLES  = 500; // cycles considered 100% → 0% health
+const MAX_CYCLES  = 1000; // cycles considered 100% → 0% health
 
 // ─────────────────────────────────────────
 // STATE
@@ -1335,7 +1356,7 @@ async function submitLog() {
 // ─────────────────────────────────────────
 async function loadHealth() {
   document.getElementById('health-tbody').innerHTML =
-    '<tr class="loading-row"><td colspan="6"><span class="spin" style="color:var(--gold);"></span>&nbsp; Computing health data…</td></tr>';
+    '<tr class="loading-row"><td colspan="6"><span class="spin" style="color:var(--ink-3);"></span>&nbsp; Computing health data…</td></tr>';
   try {
     const [logsData, batsData] = await Promise.all([
       api('getLogs'),
@@ -1390,13 +1411,13 @@ async function loadHealth() {
 
     tbody.innerHTML = rows.map((r, i) => {
       const h = Math.max(0, Math.round((1 - r.cycles / MAX_CYCLES) * 100));
-      const color = h > 70 ? '#2e7d52' : h > 40 ? '#a8752e' : '#c0392b';
+      const color = h > 70 ? '#2e7d52' : h > 40 ? '#555555' : '#c0392b';
       const ts = r.lastTs ? r.lastTs.toLocaleDateString('en-GB') + ' ' + r.lastTs.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—';
       return `<tr>
         <td class="mono-cell">${esc(r.id)}</td>
         <td>
           <div style="display:flex;align-items:center;gap:10px;min-width:120px;">
-            <span style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:${color};">${h}%</span>
+            <span style="font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:600;color:${color};">${h}%</span>
             <div style="flex:1;">
               <div class="health-bar-bg">
                 <div class="health-bar-fill" style="width:${h}%;background:${color};"></div>
@@ -1404,7 +1425,7 @@ async function loadHealth() {
             </div>
           </div>
         </td>
-        <td style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;">${r.cycles}</td>
+        <td style="font-weight:600;">${r.cycles}</td>
         <td style="color:var(--ink-3);">${r.total}</td>
         <td>${statusChip(r.lastStatus)}</td>
         <td class="ts">${esc(ts)}</td>
