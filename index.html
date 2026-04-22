@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoltLog — E-Bike Battery Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800&family=JetBrains+Mono:wght@400;500&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07090f;
+      --surface: #0d1220;
+      --surface-2: #131b2e;
+      --surface-3: #1a2438;
+      --border: #1e2d42;
+      --border-2: #2a3f5a;
+      --accent: #00c9ff;
+      --accent-dim: rgba(0,201,255,0.1);
+      --accent-glow: rgba(0,201,255,0.3);
+      --green: #00ff88;
+      --green-dim: rgba(0,255,136,0.1);
+      --orange: #ff8c00;
+      --orange-dim: rgba(255,140,0,0.1);
+      --danger: #ff3d5a;
+      --danger-dim: rgba(255,61,90,0.1);
+      --text: #d0dff0;
+      --text-2: #6a85a5;
+      --text-3: #3a526a;
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Barlow', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+
+    h1, h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.02em; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ==============================
+       LOGIN
+    ============================== */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(0,201,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0,255,136,0.04) 0%, transparent 50%),
+        var(--bg);
+      position: relative;
+    }
+
+    #login-screen::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(30,45,66,0.35) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30,45,66,0.35) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 60px rgba(0,201,255,0.05), 0 24px 60px rgba(0,0,0,0.5);
+      animation: fadeUp 0.4s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-logo { text-align: center; margin-bottom: 36px; }
+    .login-logo .bolt { font-size: 52px; line-height: 1; filter: drop-shadow(0 0 14px var(--accent)); }
+    .login-logo h1 { font-size: 38px; color: var(--text); margin-top: 8px; }
+    .login-logo h1 span { color: var(--accent); }
+    .login-logo p {
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ==============================
+       FORMS
+    ============================== */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-2);
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      font-size: 15px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+    .form-group select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236a85a5' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+    .form-group select option { background: #131b2e; }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder { color: var(--text-3); }
+    .form-group textarea { resize: vertical; }
+    .form-group.mono-input input { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+
+    .input-row { display: flex; gap: 8px; }
+    .input-row .form-group { flex: 1; margin-bottom: 0; }
+
+    /* ==============================
+       BUTTONS
+    ============================== */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 11px 22px; border-radius: var(--radius); border: none;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #07090f; }
+    .btn-primary:hover:not(:disabled) { background: #33d4ff; box-shadow: 0 0 24px var(--accent-glow); }
+    .btn-secondary { background: transparent; color: var(--text-2); border: 1px solid var(--border-2); }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-success { background: var(--green); color: #07090f; }
+    .btn-success:hover:not(:disabled) { background: #33ffaa; box-shadow: 0 0 20px rgba(0,255,136,0.3); }
+    .btn-full { width: 100%; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; }
+    .btn-icon { padding: 11px 13px; font-size: 18px; }
+
+    /* ==============================
+       MESSAGES
+    ============================== */
+    .msg {
+      padding: 11px 14px; border-radius: var(--radius);
+      font-size: 13px; margin-top: 12px; display: none; line-height: 1.4;
+    }
+    .msg.show { display: block; }
+    .msg.error   { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,61,90,0.2); }
+    .msg.success { background: var(--green-dim); color: var(--green); border: 1px solid rgba(0,255,136,0.2); }
+    .msg.info    { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,201,255,0.2); }
+
+    /* ==============================
+       MODAL / OVERLAY
+    ============================== */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; backdrop-filter: blur(4px);
+    }
+    .overlay.hidden { display: none; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--border-2);
+      border-radius: var(--radius-lg); padding: 36px;
+      width: 100%; max-width: 520px; box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+      animation: fadeUp 0.3s ease both;
+    }
+    .modal h2 { font-size: 22px; margin-bottom: 8px; }
+    .modal p { color: var(--text-2); font-size: 14px; margin-bottom: 20px; line-height: 1.7; }
+    .modal code {
+      background: var(--surface-3); color: var(--accent);
+      font-family: 'JetBrains Mono', monospace; font-size: 12px;
+      padding: 2px 7px; border-radius: 4px;
+    }
+
+    /* ==============================
+       APP LAYOUT
+    ============================== */
+    #app-screen { min-height: 100vh; display: flex; flex-direction: column; }
+    #app-screen.hidden { display: none; }
+
+    .app-header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 24px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .app-logo {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 800;
+      font-size: 22px; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .app-logo .bolt-icon { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+    .user-badge {
+      display: flex; align-items: center; gap: 9px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 14px;
+    }
+    .user-avatar {
+      width: 24px; height: 24px; background: var(--accent); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #07090f; font-size: 11px; font-weight: 700;
+      font-family: 'Barlow Condensed', sans-serif;
+    }
+    .user-name { font-size: 13px; font-weight: 500; }
+
+    /* ==============================
+       NAV TABS
+    ============================== */
+    .app-nav {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 24px; display: flex; gap: 0; overflow-x: auto;
+    }
+    .tab-btn {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 14px; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-2); background: none; border: none;
+      border-bottom: 2px solid transparent; padding: 14px 20px;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 7px; white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ==============================
+       MAIN CONTENT
+    ============================== */
+    .app-main {
+      flex: 1; padding: 32px 24px;
+      max-width: 1040px; width: 100%; margin: 0 auto;
+    }
+    .tab-content { display: none; animation: fadeIn 0.25s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .section-header { margin-bottom: 28px; }
+    .section-header h2 { font-size: 28px; display: flex; align-items: center; gap: 10px; }
+    .section-header h2 .icon { color: var(--accent); }
+    .section-header p { color: var(--text-2); font-size: 14px; margin-top: 6px; }
+
+    /* ==============================
+       CARDS
+    ============================== */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 24px;
+    }
+    .card-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text-2); margin-bottom: 16px;
+    }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .hint { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+
+    /* ==============================
+       QR TAB
+    ============================== */
+    .qr-layout {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+
+    .qr-preview-card {
+      display: flex; flex-direction: column; align-items: center;
+    }
+
+    .qr-display {
+      width: 100%; aspect-ratio: 1; max-width: 240px;
+      background: white; border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px; padding: 16px;
+    }
+    .qr-display.empty {
+      background: var(--surface-2); border: 2px dashed var(--border-2);
+    }
+    .qr-placeholder { text-align: center; color: var(--text-3); }
+    .qr-placeholder .ph-icon { font-size: 48px; margin-bottom: 8px; opacity: 0.5; }
+    .qr-placeholder p { font-size: 13px; }
+    #qr-code-container canvas, #qr-code-container img { max-width: 100%; height: auto; display: block; }
+
+    .battery-id-display {
+      background: var(--surface-3); border: 1px solid var(--border-2);
+      border-radius: var(--radius); padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace; font-size: 15px;
+      color: var(--accent); text-align: center; letter-spacing: 0.05em;
+      word-break: break-all; width: 100%;
+    }
+
+    /* ==============================
+       STATUS SELECTOR
+    ============================== */
+    .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .status-btn {
+      background: var(--surface-2); border: 2px solid var(--border);
+      border-radius: var(--radius); padding: 20px 12px;
+      cursor: pointer; transition: all 0.2s;
+      text-align: center; display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+    }
+    .status-btn:hover { border-color: var(--border-2); background: var(--surface-3); }
+    .status-btn .status-icon { font-size: 28px; }
+    .status-btn .status-label {
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-2);
+    }
+    .status-btn.sel-charged   { border-color: var(--green);  background: var(--green-dim);  }
+    .status-btn.sel-charged   .status-label { color: var(--green); }
+    .status-btn.sel-not-charged { border-color: var(--danger); background: var(--danger-dim); }
+    .status-btn.sel-not-charged .status-label { color: var(--danger); }
+    .status-btn.sel-other     { border-color: var(--orange); background: var(--orange-dim); }
+    .status-btn.sel-other     .status-label { color: var(--orange); }
+
+    .other-options {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px;
+      display: none; margin-top: 12px;
+    }
+    .other-options.visible { display: block; }
+
+    /* ==============================
+       RECORDS / TABLE
+    ============================== */
+    .filter-bar {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px 20px;
+      display: flex; flex-wrap: wrap; gap: 12px;
+      align-items: flex-end; margin-bottom: 16px;
+    }
+    .filter-bar .form-group { margin-bottom: 0; flex: 1; min-width: 130px; }
+    .filter-bar .form-group label { margin-bottom: 6px; }
+    .filter-actions { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+
+    .records-table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .table-header {
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .records-count { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: var(--text-2); }
+    .records-count strong { color: var(--accent); font-size: 20px; }
+    .table-scroll { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--surface-2); }
+    thead th {
+      padding: 11px 16px; text-align: left;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-2); white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody td { padding: 12px 16px; font-size: 14px; vertical-align: middle; }
+    td.mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 12px;
+      font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+      font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
+    }
+    .badge-charged     { background: var(--green-dim);  color: var(--green);  }
+    .badge-not-charged { background: var(--danger-dim); color: var(--danger); }
+    .badge-other       { background: var(--orange-dim); color: var(--orange); }
+
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--text-3); }
+    .empty-state .empty-icon { font-size: 44px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ==============================
+       LOADING SPINNER
+    ============================== */
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: currentColor; border-radius: 50%;
+      animation: spin 0.65s linear infinite; display: inline-block; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ==============================
+       RESPONSIVE
+    ============================== */
+    @media (max-width: 680px) {
+      .qr-layout { grid-template-columns: 1fr; }
+      .status-grid { gap: 8px; }
+      .status-btn { padding: 14px 8px; }
+      .status-btn .status-icon { font-size: 22px; }
+      .filter-bar { gap: 10px; }
+      .filter-bar .form-group { min-width: 100%; }
+      .filter-actions { flex-wrap: wrap; }
+      .app-main { padding: 20px 14px; }
+      .login-card { padding: 36px 24px; margin: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       SETUP MODAL
+  ============================================================ -->
+  <div class="overlay hidden" id="setup-overlay">
+    <div class="modal">
+      <h2>⚙️ Connect to Google Sheets</h2>
+      <p>
+        Paste your <strong>Google Apps Script Web App URL</strong> below.<br>
+        This connects VoltLog to your Google Sheet for data storage.<br>
+        See <code>README.md</code> for step-by-step setup instructions.
+      </p>
+      <div class="form-group">
+        <label>Apps Script URL</label>
+        <input type="text" id="script-url-input" placeholder="https://script.google.com/macros/s/..." />
+      </div>
+      <div id="setup-msg" class="msg"></div>
+      <br>
+      <button class="btn btn-primary btn-full" onclick="saveScriptUrl()">Save & Continue</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       LOGIN SCREEN
+  ============================================================ -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="bolt">⚡</div>
+        <h1>Volt<span>Log</span></h1>
+        <p>E-Bike Battery Management</p>
+      </div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="login-username" placeholder="Enter username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" autocomplete="current-password" />
+      </div>
+
+      <div id="login-msg" class="msg"></div>
+      <br>
+
+      <button class="btn btn-primary btn-full" id="login-btn" onclick="handleLogin()">Sign In</button>
+
+      <p style="margin-top: 18px; text-align: center; font-size: 12px; color: var(--text-3);">
+        Contact your admin to add/reset accounts
+      </p>
+      <hr class="divider">
+      <button class="btn btn-secondary btn-full btn-sm" onclick="document.getElementById('setup-overlay').classList.remove('hidden')">
+        ⚙️ Configure API URL
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN APP
+  ============================================================ -->
+  <div id="app-screen" class="hidden">
+
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="app-logo">
+        <span class="bolt-icon">⚡</span> VoltLog
+      </div>
+      <div class="header-right">
+        <div class="user-badge">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <span class="user-name" id="user-name-display">User</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </header>
+
+    <!-- NAV -->
+    <nav class="app-nav">
+      <button class="tab-btn active" data-tab="qr"      onclick="switchTab('qr')">📷 Generate QR</button>
+      <button class="tab-btn"        data-tab="log"     onclick="switchTab('log')">🔋 Log Battery</button>
+      <button class="tab-btn"        data-tab="records" onclick="switchTab('records')">📊 Records</button>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="app-main">
+
+      <!-- ========================
+           TAB: QR GENERATOR
+      ========================= -->
+      <section id="tab-qr" class="tab-content active">
+        <div class="section-header">
+          <h2><span class="icon">📷</span> QR Code Generator</h2>
+          <p>Generate a QR code and register new batteries in the system</p>
+        </div>
+
+        <div class="qr-layout">
+
+          <!-- LEFT: Controls -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="card">
+              <p class="card-label">Battery ID</p>
+              <div class="input-row">
+                <div class="form-group mono-input">
+                  <input type="text" id="qr-battery-id" placeholder="e.g. BAT-20240115-A1B2" oninput="onBatteryIdInput()" />
+                </div>
+                <button class="btn btn-secondary btn-icon" onclick="autoGenerateId()" title="Auto-generate ID">🎲</button>
+              </div>
+              <p class="hint">Type an ID or click 🎲 to auto-generate one</p>
+              <hr class="divider">
+              <button class="btn btn-primary btn-full" onclick="generateQR()">📷 Generate QR Code</button>
+              <div id="qr-msg" class="msg"></div>
+            </div>
+
+            <div class="card">
+              <p class="card-label">Actions</p>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="btn btn-secondary btn-full" id="download-qr-btn" onclick="downloadQR()" disabled>
+                  ⬇️ Download QR Image
+                </button>
+                <button class="btn btn-success btn-full" id="register-battery-btn" onclick="registerBattery()" disabled>
+                  ✅ Register Battery in System
+                </button>
+              </div>
+              <div id="register-msg" class="msg"></div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Preview -->
+          <div class="card qr-preview-card">
+            <p class="card-label" style="align-self:flex-start;">QR Preview</p>
+            <div class="qr-display empty" id="qr-display">
+              <div class="qr-placeholder" id="qr-placeholder">
+                <div class="ph-icon">🔲</div>
+                <p>QR code will<br>appear here</p>
+              </div>
+              <div id="qr-code-container" style="display:none; width:100%;"></div>
+            </div>
+            <div class="battery-id-display" id="qr-id-display" style="display:none;">—</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ========================
+           TAB: LOG BATTERY
+      ========================= -->
+      <section id="tab-log" class="tab-content">
+        <div class="section-header">
+          <h2><span class="icon">🔋</span> Log Battery Status</h2>
+          <p>Record the current charge status of a battery</p>
+        </div>
+
+        <div class="card">
+          <!-- Battery ID -->
+          <div class="form-group">
+            <label>Battery ID</label>
+            <div class="input-row">
+              <div class="form-group mono-input">
+                <input type="text" id="log-battery-id" placeholder="Enter or scan battery ID" />
+              </div>
+              <button class="btn btn-secondary btn-icon" onclick="toggleBatteryPicker()" title="Pick from registered batteries">📋</button>
+            </div>
+          </div>
+
+          <!-- Battery picker (hidden by default) -->
+          <div id="battery-picker" style="display:none; margin-top:-8px; margin-bottom:16px;">
+            <div class="form-group">
+              <select id="battery-select" onchange="pickBattery(this.value)">
+                <option value="">— Loading batteries… —</option>
+              </select>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <!-- Status selection -->
+          <label style="display:block; font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-2); margin-bottom:12px;">Charge Status</label>
+
+          <div class="status-grid">
+            <button class="status-btn" id="status-btn-charged"     onclick="selectStatus('Charged')">
+              <span class="status-icon">✅</span>
+              <span class="status-label">Charged</span>
+            </button>
+            <button class="status-btn" id="status-btn-not-charged" onclick="selectStatus('Not Charged')">
+              <span class="status-icon">❌</span>
+              <span class="status-label">Not Charged</span>
+            </button>
+            <button class="status-btn" id="status-btn-other"       onclick="selectStatus('Other')">
+              <span class="status-icon">⚙️</span>
+              <span class="status-label">Other</span>
+            </button>
+          </div>
+
+          <!-- Other sub-options -->
+          <div class="other-options" id="other-options">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Specify Status</label>
+              <select id="other-status-select">
+                <option value="Faulty">⚠️ Faulty / Damaged</option>
+                <option value="10%">🔋 10% Charged</option>
+                <option value="20%">🔋 20% Charged</option>
+                <option value="30%">🔋 30% Charged</option>
+                <option value="40%">🔋 40% Charged</option>
+                <option value="50%">🔋 50% Charged</option>
+                <option value="60%">🔋 60% Charged</option>
+                <option value="70%">🔋 70% Charged</option>
+                <option value="80%">🔋 80% Charged</option>
+                <option value="90%">🔋 90% Charged</option>
+              </select>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="form-group">
+            <label>Notes <span style="color:var(--text-3); font-size:10px;">(optional)</span></label>
+            <textarea id="log-notes" placeholder="Any additional notes about this battery…" rows="2"></textarea>
+          </div>
+
+          <div id="log-msg" class="msg"></div>
+          <br>
+          <button class="btn btn-primary btn-full" id="log-submit-btn" onclick="submitLog()">🔋 Submit Log</button>
+        </div>
+      </section>
+
+      <!-- ========================
+           TAB: RECORDS
+      ========================= -->
+      <section id="tab-records" class="tab-content">
+        <div class="section-header">
+          <h2><span class="icon">📊</span> Battery Records</h2>
+          <p>View, search, and export all battery status logs</p>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="filter-bar">
+          <div class="form-group">
+            <label>Battery ID</label>
+            <input type="text" id="filter-battery-id" placeholder="Search…" style="font-family:'JetBrains Mono',monospace;font-size:13px;" oninput="applyFilters()" />
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="filter-status" onchange="applyFilters()">
+              <option value="">All Statuses</option>
+              <option value="Charged">✅ Charged</option>
+              <option value="Not Charged">❌ Not Charged</option>
+              <option value="Faulty">⚠️ Faulty</option>
+              <option value="10%">🔋 10%</option>
+              <option value="20%">🔋 20%</option>
+              <option value="30%">🔋 30%</option>
+              <option value="40%">🔋 40%</option>
+              <option value="50%">🔋 50%</option>
+              <option value="60%">🔋 60%</option>
+              <option value="70%">🔋 70%</option>
+              <option value="80%">🔋 80%</option>
+              <option value="90%">🔋 90%</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" id="filter-date-from" onchange="applyFilters()" />
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" id="filter-date-to" onchange="applyFilters()" />
+          </div>
+          <div class="form-group">
+            <label>Logged By</label>
+            <input type="text" id="filter-user" placeholder="Username…" oninput="applyFilters()" />
+          </div>
+          <div class="filter-actions">
+            <button class="btn btn-secondary btn-sm" onclick="clearFilters()">✕ Clear</button>
+            <button class="btn btn-secondary btn-sm" onclick="loadRecords()">↻ Refresh</button>
+            <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇️ CSV</button>
+          </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="records-table-wrap">
+          <div class="table-header">
+            <div class="records-count">
+              <strong id="records-count-num">0</strong> records
+            </div>
+            <div id="records-loading" style="display:none;">
+              <span class="spinner" style="color:var(--accent);"></span>&nbsp; Loading…
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Battery ID</th>
+                  <th>Status</th>
+                  <th>Logged By</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody id="records-tbody">
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="empty-icon">📋</div>
+                      <p>Click the Records tab to load data</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+  <script>
+    // =====================================================
+    // STATE
+    // =====================================================
+    const CONFIG_KEY  = 'voltlog_script_url';
+    const SESSION_KEY = 'voltlog_session';
+
+    const state = {
+      scriptUrl:      localStorage.getItem(CONFIG_KEY) || '',
+      user:           null,
+      allLogs:        [],
+      filteredLogs:   [],
+      currentQrId:    null,
+      selectedStatus: null,
+      qrGenerated:    false,
+      recordsLoaded:  false,
+    };
+
+    // =====================================================
+    // INIT
+    // =====================================================
+    window.addEventListener('load', () => {
+      if (!state.scriptUrl) {
+        document.getElementById('setup-overlay').classList.remove('hidden');
+      }
+
+      // Restore session
+      try {
+        const saved = localStorage.getItem(SESSION_KEY);
+        if (saved) {
+          state.user = JSON.parse(saved);
+          showApp();
+        }
+      } catch(e) { localStorage.removeItem(SESSION_KEY); }
+
+      // Enter key on login
+      ['login-username', 'login-password'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', e => {
+          if (e.key === 'Enter') handleLogin();
+        });
+      });
+    });
+
+    // =====================================================
+    // SETUP
+    // =====================================================
+    function saveScriptUrl() {
+      const url = document.getElementById('script-url-input').value.trim();
+      if (!url || !url.startsWith('https://script.google.com')) {
+        showMsg('setup-msg', 'Please enter a valid Google Apps Script URL', 'error');
+        return;
+      }
+      state.scriptUrl = url;
+      localStorage.setItem(CONFIG_KEY, url);
+      document.getElementById('setup-overlay').classList.add('hidden');
+      showMsg('login-msg', '✅ API URL saved successfully', 'success');
+    }
+
+    // =====================================================
+    // API HELPER
+    // =====================================================
+    async function api(action, payload = {}) {
+      if (!state.scriptUrl) {
+        document.getElementById('setup-overlay').classList.remove('hidden');
+        throw new Error('No API URL configured');
+      }
+
+      const body = { action, ...payload };
+      if (state.user) {
+        body.username = state.user.username;
+        body.password = state.user.password;
+      }
+
+      // Use text/plain to avoid CORS preflight on Apps Script
+      const res = await fetch(state.scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error(`Server error: HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Unknown error from server');
+      return data;
+    }
+
+    // =====================================================
+    // AUTH
+    // =====================================================
+    async function handleLogin() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      if (!username || !password) {
+        showMsg('login-msg', 'Please enter your username and password', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('login-btn');
+      setLoading(btn, true, '<span class="spinner"></span> Signing in…');
+
+      try {
+        const data = await api('login', { username, password });
+        state.user = { username: data.username, role: data.role || 'user', password };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(state.user));
+        showApp();
+      } catch(err) {
+        showMsg('login-msg', err.message || 'Login failed. Check credentials.', 'error');
+      } finally {
+        setLoading(btn, false, 'Sign In');
+      }
+    }
+
+    function handleLogout() {
+      state.user         = null;
+      state.allLogs      = [];
+      state.filteredLogs = [];
+      state.recordsLoaded = false;
+      localStorage.removeItem(SESSION_KEY);
+      document.getElementById('login-screen').style.display = '';
+      document.getElementById('app-screen').classList.add('hidden');
+      document.getElementById('login-password').value = '';
+    }
+
+    function showApp() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').classList.remove('hidden');
+      document.getElementById('user-name-display').textContent = state.user.username;
+      document.getElementById('user-avatar').textContent = state.user.username.charAt(0).toUpperCase();
+    }
+
+    // =====================================================
+    // TAB NAVIGATION
+    // =====================================================
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.toggle('active', el.id === 'tab-' + tab);
+      });
+
+      if (tab === 'records' && !state.recordsLoaded) {
+        loadRecords();
+      }
+    }
+
+    // =====================================================
+    // QR GENERATOR
+    // =====================================================
+    function autoGenerateId() {
+      const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+      const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+      document.getElementById('qr-battery-id').value = `BAT-${date}-${rand}`;
+      onBatteryIdInput();
+    }
+
+    function onBatteryIdInput() {
+      state.qrGenerated = false;
+      state.currentQrId = null;
+      document.getElementById('download-qr-btn').disabled = true;
+      document.getElementById('register-battery-btn').disabled = true;
+    }
+
+    function generateQR() {
+      const id = document.getElementById('qr-battery-id').value.trim();
+      if (!id) { showMsg('qr-msg', 'Please enter a Battery ID first', 'error'); return; }
+
+      const container = document.getElementById('qr-code-container');
+      container.innerHTML = '';
+
+      new QRCode(container, {
+        text: id,
+        width: 220, height: 220,
+        colorDark: '#000000', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H,
+      });
+
+      document.getElementById('qr-placeholder').style.display = 'none';
+      container.style.display = 'block';
+      document.getElementById('qr-display').classList.remove('empty');
+
+      const idDisplay = document.getElementById('qr-id-display');
+      idDisplay.textContent = id;
+      idDisplay.style.display = 'block';
+
+      state.currentQrId = id;
+      state.qrGenerated = true;
+      document.getElementById('download-qr-btn').disabled = false;
+      document.getElementById('register-battery-btn').disabled = false;
+
+      showMsg('qr-msg', `✅ QR code generated for ${id}`, 'success');
+    }
+
+    function downloadQR() {
+      if (!state.qrGenerated) return;
+      const container = document.getElementById('qr-code-container');
+      const el = container.querySelector('canvas') || container.querySelector('img');
+      if (!el) return;
+      const link = document.createElement('a');
+      link.href = el.tagName === 'CANVAS' ? el.toDataURL('image/png') : el.src;
+      link.download = `QR-${state.currentQrId}.png`;
+      link.click();
+    }
+
+    async function registerBattery() {
+      if (!state.currentQrId) return;
+      const btn = document.getElementById('register-battery-btn');
+      setLoading(btn, true, '<span class="spinner"></span> Registering…');
+      try {
+        await api('addBattery', { batteryId: state.currentQrId });
+        showMsg('register-msg', `✅ Battery "${state.currentQrId}" registered in Google Sheets!`, 'success');
+        btn.disabled = true; // prevent double-register
+      } catch(err) {
+        showMsg('register-msg', err.message || 'Registration failed', 'error');
+        setLoading(btn, false, '✅ Register Battery in System');
+      } finally {
+        btn.innerHTML = '✅ Register Battery in System';
+      }
+    }
+
+    // =====================================================
+    // LOG BATTERY
+    // =====================================================
+    let batteryPickerOpen = false;
+
+    async function toggleBatteryPicker() {
+      const picker = document.getElementById('battery-picker');
+      if (batteryPickerOpen) {
+        picker.style.display = 'none';
+        batteryPickerOpen = false;
+        return;
+      }
+      picker.style.display = 'block';
+      batteryPickerOpen = true;
+
+      try {
+        const data = await api('getBatteries');
+        const select = document.getElementById('battery-select');
+        if (!data.batteries || data.batteries.length === 0) {
+          select.innerHTML = '<option value="">— No batteries registered yet —</option>';
+          return;
+        }
+        select.innerHTML = '<option value="">— Select a battery —</option>' +
+          data.batteries.map(b => `<option value="${escHtml(b.id)}">${escHtml(b.id)}</option>`).join('');
+      } catch(err) {
+        showMsg('log-msg', 'Could not load battery list: ' + err.message, 'error');
+      }
+    }
+
+    function pickBattery(val) {
+      if (val) {
+        document.getElementById('log-battery-id').value = val;
+        document.getElementById('battery-picker').style.display = 'none';
+        batteryPickerOpen = false;
+      }
+    }
+
+    function selectStatus(status) {
+      state.selectedStatus = status;
+      document.getElementById('status-btn-charged').className     = 'status-btn';
+      document.getElementById('status-btn-not-charged').className = 'status-btn';
+      document.getElementById('status-btn-other').className       = 'status-btn';
+      const otherOpts = document.getElementById('other-options');
+
+      if (status === 'Charged') {
+        document.getElementById('status-btn-charged').className   = 'status-btn sel-charged';
+        otherOpts.classList.remove('visible');
+      } else if (status === 'Not Charged') {
+        document.getElementById('status-btn-not-charged').className = 'status-btn sel-not-charged';
+        otherOpts.classList.remove('visible');
+      } else {
+        document.getElementById('status-btn-other').className     = 'status-btn sel-other';
+        otherOpts.classList.add('visible');
+      }
+    }
+
+    async function submitLog() {
+      const batteryId = document.getElementById('log-battery-id').value.trim();
+      const notes     = document.getElementById('log-notes').value.trim();
+
+      if (!batteryId) { showMsg('log-msg', 'Please enter a Battery ID', 'error'); return; }
+      if (!state.selectedStatus) { showMsg('log-msg', 'Please select a charge status', 'error'); return; }
+
+      const finalStatus = state.selectedStatus === 'Other'
+        ? document.getElementById('other-status-select').value
+        : state.selectedStatus;
+
+      const btn = document.getElementById('log-submit-btn');
+      setLoading(btn, true, '<span class="spinner"></span> Submitting…');
+
+      try {
+        await api('logBattery', { batteryId, status: finalStatus, notes });
+        showMsg('log-msg', `✅ Battery "${batteryId}" logged as "${finalStatus}"`, 'success');
+
+        // Reset form
+        document.getElementById('log-battery-id').value = '';
+        document.getElementById('log-notes').value = '';
+        selectStatus(null);
+        ['status-btn-charged','status-btn-not-charged','status-btn-other']
+          .forEach(id => document.getElementById(id).className = 'status-btn');
+        document.getElementById('other-options').classList.remove('visible');
+        state.selectedStatus = null;
+        state.recordsLoaded = false; // invalidate cache
+      } catch(err) {
+        showMsg('log-msg', err.message || 'Submission failed', 'error');
+      } finally {
+        setLoading(btn, false, '🔋 Submit Log');
+      }
+    }
+
+    // =====================================================
+    // RECORDS
+    // =====================================================
+    async function loadRecords() {
+      const loading = document.getElementById('records-loading');
+      loading.style.display = 'flex';
+
+      try {
+        const data = await api('getLogs');
+        state.allLogs      = data.logs || [];
+        state.filteredLogs = [...state.allLogs];
+        state.recordsLoaded = true;
+        applyFilters();
+      } catch(err) {
+        renderTableError(err.message || 'Failed to load records');
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    function applyFilters() {
+      const idFilter     = document.getElementById('filter-battery-id').value.trim().toLowerCase();
+      const statusFilter = document.getElementById('filter-status').value;
+      const dateFrom     = document.getElementById('filter-date-from').value;
+      const dateTo       = document.getElementById('filter-date-to').value;
+      const userFilter   = document.getElementById('filter-user').value.trim().toLowerCase();
+
+      state.filteredLogs = state.allLogs.filter(log => {
+        const dateStr = String(log.timestamp).slice(0, 10);
+        if (idFilter     && !String(log.batteryId).toLowerCase().includes(idFilter))     return false;
+        if (statusFilter && log.status !== statusFilter)                                  return false;
+        if (dateFrom     && dateStr < dateFrom)                                           return false;
+        if (dateTo       && dateStr > dateTo)                                             return false;
+        if (userFilter   && !String(log.loggedBy).toLowerCase().includes(userFilter))    return false;
+        return true;
+      });
+
+      renderTable();
+    }
+
+    function clearFilters() {
+      ['filter-battery-id','filter-user'].forEach(id => document.getElementById(id).value = '');
+      ['filter-status'].forEach(id => document.getElementById(id).value = '');
+      ['filter-date-from','filter-date-to'].forEach(id => document.getElementById(id).value = '');
+      state.filteredLogs = [...state.allLogs];
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('records-tbody');
+      document.getElementById('records-count-num').textContent = state.filteredLogs.length;
+
+      if (state.filteredLogs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5">
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <p>No records match your filters</p>
+          </div>
+        </td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = state.filteredLogs.map(log => {
+        const ts = new Date(log.timestamp);
+        const formatted = isNaN(ts) ? log.timestamp :
+          ts.toLocaleDateString('en-GB') + ' ' + ts.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `<tr>
+          <td style="color:var(--text-2);font-size:13px;white-space:nowrap;">${escHtml(formatted)}</td>
+          <td class="mono">${escHtml(log.batteryId || '—')}</td>
+          <td>${statusBadge(log.status)}</td>
+          <td style="font-size:13px;">${escHtml(log.loggedBy || '—')}</td>
+          <td style="color:var(--text-2);font-size:13px;">${escHtml(log.notes || '—')}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderTableError(msg) {
+      document.getElementById('records-tbody').innerHTML = `<tr><td colspan="5">
+        <div class="empty-state">
+          <div class="empty-icon">⚠️</div>
+          <p>${escHtml(msg)}</p>
+        </div>
+      </td></tr>`;
+    }
+
+    function statusBadge(s) {
+      if (s === 'Charged')     return `<span class="status-badge badge-charged">✅ Charged</span>`;
+      if (s === 'Not Charged') return `<span class="status-badge badge-not-charged">❌ Not Charged</span>`;
+      if (s === 'Faulty')      return `<span class="status-badge badge-other">⚠️ Faulty</span>`;
+      if (s && s.endsWith('%')) return `<span class="status-badge badge-other">🔋 ${escHtml(s)}</span>`;
+      return `<span class="status-badge badge-other">${escHtml(s || '—')}</span>`;
+    }
+
+    function exportCSV() {
+      if (state.filteredLogs.length === 0) { alert('No records to export.'); return; }
+      const headers = ['Timestamp', 'Battery ID', 'Status', 'Logged By', 'Notes'];
+      const rows = state.filteredLogs.map(l =>
+        [l.timestamp, l.batteryId, l.status, l.loggedBy, l.notes || '']
+      );
+      const csv = [headers, ...rows]
+        .map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(','))
+        .join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url  = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `voltlog-export-${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // =====================================================
+    // UTILITIES
+    // =====================================================
+    function showMsg(id, text, type) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = `msg ${type} show`;
+      clearTimeout(el._t);
+      el._t = setTimeout(() => el.classList.remove('show'), 5000);
+    }
+
+    function setLoading(btn, loading, html) {
+      btn.disabled = loading;
+      btn.innerHTML = html;
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>
